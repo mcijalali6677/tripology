@@ -1,0 +1,15 @@
+[Unit]
+Description=Tripology GitHub Webhook Listener
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/tripology
+Environment=WEBHOOK_SECRET=tripology-deploy-secret-2026
+ExecStart=/usr/bin/python3 /opt/tripology/deploy/webhook-server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
