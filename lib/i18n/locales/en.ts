@@ -70,6 +70,7 @@ const en = {
     travelAI: "Travel AI",
     shareTrip: "Share Trip",
     profile: "Profile",
+    destinations: "Destinations",
   },
 
   // ===== HOME PAGE =====
@@ -398,6 +399,19 @@ const en = {
     staysBookedCount: "{{count}} stays booked",
     aiAccommodationTitle: "AI-Powered Accommodation",
     withYouTitle: "Always with You",
+    aiPlansTitle: "AI Plans It For Me",
+    aiPlansDesc: "Tell me what you want and AI picks the best activities for your basket",
+    aiGreeting: "Tell me what kind of trip you want and I will pick the best activities for your basket!",
+    aiChip1: "Cheap trip for 3 days",
+    aiChip2: "Best museums & culture",
+    aiChip3: "Romantic weekend plan",
+    aiChip4: "Family-friendly activities",
+    aiInputPlaceholder: "Tell me about your trip...",
+    aiNote: "AI adds activities to your basket automatically. Review and proceed from there.",
+    resetChat: "Reset conversation",
+    orDivider: "OR",
+    pickMyselfTitle: "I will Pick Myself",
+    pickMyselfDesc: "Browse activities and add them to your basket",
     categories: {
       activities: "Activities",
       liveEvents: "Live Events",

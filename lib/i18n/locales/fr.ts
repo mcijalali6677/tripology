@@ -70,6 +70,7 @@ const fr = {
     travelAI: "IA voyage",
     shareTrip: "Partager",
     profile: "Profil",
+    destinations: "Destinations",
   },
 
   // ===== HOME PAGE =====
@@ -393,6 +394,19 @@ const fr = {
     staysBookedCount: "{{count}} séjour(s) réservé(s)",
     aiAccommodationTitle: "Hébergement intelligent",
     withYouTitle: "Toujours avec vous",
+    aiPlansTitle: "L'IA planifie pour moi",
+    aiPlansDesc: "Dites-moi ce que vous voulez et l'IA choisit les meilleures activités pour votre panier",
+    aiGreeting: "Dites-moi quel type de voyage vous souhaitez et je choisirai les meilleures activités pour votre panier !",
+    aiChip1: "Voyage économique de 3 jours",
+    aiChip2: "Meilleurs musées et culture",
+    aiChip3: "Plan week-end romantique",
+    aiChip4: "Activités familiales",
+    aiInputPlaceholder: "Parlez-moi de votre voyage...",
+    aiNote: "L'IA ajoute automatiquement des activités à votre panier. Vérifiez et continuez.",
+    resetChat: "Recommencer la conversation",
+    orDivider: "OU",
+    pickMyselfTitle: "Je choisis moi-même",
+    pickMyselfDesc: "Parcourez les activités et ajoutez-les à votre panier",
     categories: {
       activities: "Activités",
       liveEvents: "Événements",
