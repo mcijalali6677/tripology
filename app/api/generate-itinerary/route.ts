@@ -3,7 +3,8 @@
  * Falls back to a demo itinerary if backend is unreachable.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://tripology7.shop/api/v1";
+// Use internal URL for server-side requests to avoid double-proxying through Nginx
+const API_BASE = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 export const maxDuration = 120;
 

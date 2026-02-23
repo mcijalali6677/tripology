@@ -23,6 +23,7 @@ from app.schemas.chat import (
     ChatMessageResponse, GenerateItineraryRequest, SwapActivityRequest,
     RecommendationRequest, RecommendationResponse,
 )
+from app.models.chat import ChatSession, ChatMessage
 
 router = APIRouter(tags=["AI"])
 
@@ -61,6 +62,32 @@ async def list_chat_sessions(
     return result.scalars().all()
 
 
+@router.get("/chat/sessions/{session_id}/messages", response_model=list[ChatMessageResponse])
+async def get_session_messages(
+    session_id: UUID,
+    limit: int = 50,
+    user: User = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve message history for a chat session."""
+    # Verify session ownership
+    query = select(ChatSession).where(ChatSession.id == session_id)
+    if user:
+        query = query.where(ChatSession.user_id == user.id)
+    result = await db.execute(query)
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+
+    msg_result = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.created_at.asc())
+        .limit(min(limit, 200))
+    )
+    return msg_result.scalars().all()
+
+
 # ===== Chat Messages =====
 
 @router.post("/chat/sessions/{session_id}/messages")
@@ -89,9 +116,6 @@ async def send_message(
         db=db,
         destination=data.destination,
     )
-    
-    # Update session
-    session.message_count += 2  # user + assistant
     
     return response
 
@@ -153,7 +177,10 @@ async def send_message_stream(
                     next_token_task.cancel()
                     with contextlib.suppress(Exception):
                         await next_token_task
-            yield f"data: {json.dumps({'done': True, 'content': full_response})}\n\n"
+
+            # Include RAG sources in the final done event
+            sources = getattr(chat_agent, '_last_rag_sources', [])
+            yield f"data: {json.dumps({'done': True, 'content': full_response, 'sources': sources})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
     

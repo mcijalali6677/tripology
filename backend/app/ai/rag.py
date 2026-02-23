@@ -28,7 +28,7 @@ class RAGPipeline:
     6. LLM generates context-aware answer
     """
     
-    def __init__(self, top_k: int = 5, similarity_threshold: float = 0.7):
+    def __init__(self, top_k: int = 5, similarity_threshold: float = 0.5):
         self.top_k = top_k
         self.similarity_threshold = similarity_threshold
     
@@ -144,10 +144,11 @@ User's question: {query}"""
         system_prompt: str,
         destination: Optional[str] = None,
         history: Optional[List[Dict[str, str]]] = None,
+        preloaded_chunks: Optional[List[Dict[str, Any]]] = None,
     ):
         """Streaming RAG: retrieve context then stream answer."""
-        # 1. Retrieve
-        chunks = await self.retrieve(query, db, destination=destination)
+        # 1. Use preloaded chunks or retrieve fresh
+        chunks = preloaded_chunks if preloaded_chunks is not None else await self.retrieve(query, db, destination=destination)
         
         # 2. Build augmented prompt
         if chunks:

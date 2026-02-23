@@ -42,20 +42,37 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const { t, locale } = useI18n()
 
   useImperativeHandle(ref, () => ({
     openChat: () => setIsOpen(true),
   }))
 
+  // Persist sessionId in localStorage so chat continues across page navigations
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tripology_chat_session")
+      if (saved) setSessionId(saved)
+    } catch { /* SSR or storage unavailable */ }
+  }, [])
+
+  useEffect(() => {
+    if (sessionId) {
+      try { localStorage.setItem("tripology_chat_session", sessionId) } catch { /* ignore */ }
+    }
+  }, [sessionId])
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   const resetChat = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort()
     setMessages([])
     setSessionId(null)
     setInput("")
+    try { localStorage.removeItem("tripology_chat_session") } catch { /* ignore */ }
   }
 
   const sendMessage = async (text: string) => {
@@ -74,6 +91,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
     setMessages(prev => [...prev, { id: assistantId, role: "assistant", content: "", isStreaming: true }])
 
     try {
+      abortControllerRef.current = new AbortController()
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,6 +100,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
           sessionId,
           locale: locale,
         }),
+        signal: abortControllerRef.current.signal,
       })
 
       const contentType = response.headers.get("content-type") || ""

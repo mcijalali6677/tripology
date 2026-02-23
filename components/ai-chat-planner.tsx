@@ -73,8 +73,23 @@ export function AIChatPlanner({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const { t, locale } = useI18n()
   const [showInternational, setShowInternational] = useState(locale === "en")
+
+  // Persist sessionId so chat continues across page navigations
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tripology_planner_session")
+      if (saved) setSessionId(saved)
+    } catch { /* SSR or storage unavailable */ }
+  }, [])
+
+  useEffect(() => {
+    if (sessionId) {
+      try { localStorage.setItem("tripology_planner_session", sessionId) } catch { /* ignore */ }
+    }
+  }, [sessionId])
 
   // Build prompt keys based on local vs international toggle
   const promptPrefix = showInternational ? "intlPrompt" : "prompt"
@@ -118,6 +133,7 @@ export function AIChatPlanner({
     setMessages((prev) => [...prev, userMessage, assistantMessage])
 
     try {
+      abortControllerRef.current = new AbortController()
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,6 +142,7 @@ export function AIChatPlanner({
           sessionId: currentSessionId,
           locale: locale,
         }),
+        signal: abortControllerRef.current.signal,
       })
 
       if (!response.ok) {
@@ -271,9 +288,11 @@ export function AIChatPlanner({
   }
 
   const resetChat = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort()
     setMessages([])
     setSessionId(null)
     setInput("")
+    try { localStorage.removeItem("tripology_planner_session") } catch { /* ignore */ }
   }
 
   const containerClass = isFullPage

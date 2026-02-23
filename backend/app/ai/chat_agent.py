@@ -101,7 +101,11 @@ class TravelChatAgent:
         await self._save_message(session_id, db, MessageRole.USER, message,
                                  tokens_used=_estimate_tokens(message))
         
-        # 3. Stream with RAG context
+        # 3. Retrieve RAG context first (exposed for the caller)
+        rag_sources = await rag_pipeline.retrieve(message, db, destination=destination)
+        self._last_rag_sources = rag_sources  # Store for caller to access
+        
+        # 4. Stream with RAG context
         full_response = ""
         async for token in rag_pipeline.generate_stream_with_context(
             query=message,
@@ -109,6 +113,7 @@ class TravelChatAgent:
             system_prompt=system_prompt,
             destination=destination,
             history=history,
+            preloaded_chunks=rag_sources,
         ):
             full_response += token
             yield token
