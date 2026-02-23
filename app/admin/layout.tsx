@@ -21,11 +21,13 @@ import {
   Bell,
   Search,
   Home,
+  Store,
 } from "lucide-react";
 
 const ADMIN_NAV = [
   { key: "dashboard", href: "/admin", icon: LayoutDashboard },
   { key: "users", href: "/admin/users", icon: Users },
+  { key: "vendors", href: "/admin/vendors", icon: Store },
   { key: "trips", href: "/admin/trips", icon: Map },
   { key: "bookings", href: "/admin/bookings", icon: ShoppingCart },
   { key: "reviews", href: "/admin/reviews", icon: Star },

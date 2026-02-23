@@ -26,6 +26,7 @@ export function FooterAdvanced() {
     [t("footerAdv.forCreators")]: [
       { label: t("footerAdv.shareYourTrip"), href: "/submit-trip" },
       { label: t("footerAdv.creatorDashboard"), href: "/profile" },
+      { label: t("vendor.becomeVendor"), href: "/vendor/register" },
       { label: t("footerAdv.earningGuide"), href: "#" },
       { label: t("footerAdv.communityGuidelines"), href: "#" },
       { label: t("footerAdv.becomeCreator"), href: "/submit-trip" },

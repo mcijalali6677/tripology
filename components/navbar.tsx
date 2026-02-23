@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Search, Menu, User, Heart, Sparkles, Compass, Upload, Navigation, LogOut, Shield } from "lucide-react"
+import { Search, Menu, User, Heart, Sparkles, Compass, Upload, Navigation, LogOut, Shield, Store } from "lucide-react"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/auth-context"
@@ -53,6 +53,13 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
               >
                 <Upload className="size-3.5 lg:size-4" />
                 {t("navbar.shareYourTrip")}
+              </Link>
+              <Link
+                href="/vendor/register"
+                className="text-sm lg:text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-1.5 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-forest after:transition-all hover:after:w-full"
+              >
+                <Store className="size-3.5 lg:size-4" />
+                {t("vendor.forBusiness")}
               </Link>
             </div>
           </div>
@@ -162,6 +169,14 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
                     >
                       <Navigation className="size-4" />
                       {t("navbar.duringTrip")}
+                    </Link>
+                    <Link 
+                      href="/vendor/register" 
+                      className="text-base font-medium flex items-center gap-2" 
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Store className="size-4" />
+                      {t("vendor.forBusiness")}
                     </Link>
                     {isAuthenticated && (
                       <Link 
