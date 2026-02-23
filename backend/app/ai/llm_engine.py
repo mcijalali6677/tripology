@@ -113,8 +113,19 @@ class LLMEngine:
     async def health_check(self) -> Dict[str, Any]:
         """Check if Ollama is running and model is available."""
         try:
-            models = await self.client.list()
-            model_names = [m["name"] for m in models.get("models", [])]
+            models_response = await self.client.list()
+            # Handle both dict and object response formats from different ollama versions
+            if isinstance(models_response, dict):
+                models_list = models_response.get("models", [])
+            else:
+                models_list = getattr(models_response, "models", [])
+            
+            model_names = []
+            for m in models_list:
+                name = m.get("name", "") if isinstance(m, dict) else getattr(m, "model", getattr(m, "name", ""))
+                if name:
+                    model_names.append(name)
+            
             is_model_loaded = any(self.model in name for name in model_names)
             return {
                 "status": "healthy",

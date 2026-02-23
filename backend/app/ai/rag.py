@@ -40,53 +40,58 @@ class RAGPipeline:
         category: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Retrieve relevant knowledge chunks using vector similarity search."""
-        # 1. Embed the query
-        query_embedding = await embedding_engine.embed_text(query)
-        
-        # 2. Build pgvector search query
-        filters = []
-        params = {"embedding": str(query_embedding), "limit": self.top_k}
-        
-        if destination:
-            filters.append("destination = :destination")
-            params["destination"] = destination
-        if category:
-            filters.append("category = :category")
-            params["category"] = category
-        
-        where_clause = ""
-        if filters:
-            where_clause = "WHERE " + " AND ".join(filters)
-        
-        sql = text(f"""
-            SELECT 
-                id, title, content, source, category, destination, tags,
-                1 - (embedding <=> :embedding::vector) as similarity
-            FROM knowledge_base
-            {where_clause}
-            ORDER BY embedding <=> :embedding::vector
-            LIMIT :limit
-        """)
-        
-        result = await db.execute(sql, params)
-        rows = result.fetchall()
-        
-        # 3. Filter by similarity threshold
-        chunks = []
-        for row in rows:
-            similarity = float(row.similarity) if row.similarity else 0
-            if similarity >= self.similarity_threshold:
-                chunks.append({
-                    "id": str(row.id),
-                    "title": row.title,
-                    "content": row.content,
-                    "source": row.source,
-                    "category": row.category,
-                    "destination": row.destination,
-                    "similarity": round(similarity, 4),
-                })
-        
-        return chunks
+        try:
+            # 1. Embed the query
+            query_embedding = await embedding_engine.embed_text(query)
+            
+            # 2. Build pgvector search query
+            # Use CAST instead of :: to avoid asyncpg parameter parsing issues
+            filters = []
+            params = {"embedding": str(query_embedding), "limit": self.top_k}
+            
+            if destination:
+                filters.append("destination = :destination")
+                params["destination"] = destination
+            if category:
+                filters.append("category = :category")
+                params["category"] = category
+            
+            where_clause = ""
+            if filters:
+                where_clause = "WHERE " + " AND ".join(filters)
+            
+            sql = text(f"""
+                SELECT 
+                    id, title, content, source, category, destination, tags,
+                    1 - (embedding <=> CAST(:embedding AS vector)) as similarity
+                FROM knowledge_base
+                {where_clause}
+                ORDER BY embedding <=> CAST(:embedding AS vector)
+                LIMIT :limit
+            """)
+            
+            result = await db.execute(sql, params)
+            rows = result.fetchall()
+            
+            # 3. Filter by similarity threshold
+            chunks = []
+            for row in rows:
+                similarity = float(row.similarity) if row.similarity else 0
+                if similarity >= self.similarity_threshold:
+                    chunks.append({
+                        "id": str(row.id),
+                        "title": row.title,
+                        "content": row.content,
+                        "source": row.source,
+                        "category": row.category,
+                        "destination": row.destination,
+                        "similarity": round(similarity, 4),
+                    })
+            
+            return chunks
+        except Exception as e:
+            logger.warning(f"RAG retrieval failed (using LLM without context): {e}")
+            return []
     
     async def generate_with_context(
         self,
