@@ -13,6 +13,7 @@ from app.ai.llm_engine import llm_engine
 from app.ai.rag import rag_pipeline
 from app.ai.prompts.templates import TRAVEL_ASSISTANT_SYSTEM
 from app.ai.personality_inference import infer_travel_profile, render_profile_for_prompt
+from app.ai.travel_tools import should_use_tools
 from app.models.chat import ChatSession, ChatMessage, MessageRole
 
 logger = logging.getLogger(__name__)
@@ -105,7 +106,12 @@ class TravelChatAgent:
         rag_sources = await rag_pipeline.retrieve(message, db, destination=destination)
         self._last_rag_sources = rag_sources  # Store for caller to access
         
-        # 4. Stream with RAG context
+        # 3.5 Determine if web price search tools should be used
+        use_tools = should_use_tools(message, history)
+        if use_tools:
+            logger.info(f"Enabling price search tools for message: {message[:60]}...")
+        
+        # 4. Stream with RAG context (+ optional tool-augmented search)
         full_response = ""
         async for token in rag_pipeline.generate_stream_with_context(
             query=message,
@@ -114,6 +120,7 @@ class TravelChatAgent:
             destination=destination,
             history=history,
             preloaded_chunks=rag_sources,
+            use_tools=use_tools,
         ):
             full_response += token
             yield token

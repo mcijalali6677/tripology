@@ -1179,6 +1179,11 @@ const ar = {
     recommendedItems: "اقتراحات الرحلة",
     addToBasket: "إضافة",
     added: "تمت الإضافة ✓",
+    buyOnline: "شراء عبر الإنترنت",
+    verifiedPrice: "سعر مؤكد ⚡",
+    estimatedPrice: "سعر تقريبي",
+    purchaseFrom: "شراء من",
+    searchingPrices: "جاري البحث عن الأسعار...",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

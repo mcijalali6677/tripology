@@ -177,6 +177,101 @@ class LLMEngine:
             if token:
                 yield token
     
+    # ── Tool Calling (Groq / OpenAI) ─────────────────────────────────
+
+    async def generate_with_tools(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: List[Dict[str, Any]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Call LLM with function calling tools (Groq/OpenAI only).
+        Returns dict with 'content' and/or 'tool_calls'.
+        """
+        if self.provider not in ("groq", "openai"):
+            # Ollama does not reliably support tool calling
+            return {"content": None, "tool_calls": None}
+
+        client = self._get_openai_client()
+        try:
+            response = await client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+                temperature=temperature or self.default_temperature,
+                max_tokens=max_tokens or 512,  # Small for tool decision
+            )
+            msg = response.choices[0].message
+
+            if msg.tool_calls:
+                return {
+                    "content": msg.content,
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": tc.type,
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments,
+                            },
+                        }
+                        for tc in msg.tool_calls
+                    ],
+                }
+            return {"content": msg.content, "tool_calls": None}
+        except Exception as e:
+            logger.warning(f"Tool calling failed ({self.provider}): {e}")
+            return {"content": None, "tool_calls": None}
+
+    async def generate_stream_from_messages(
+        self,
+        messages: List[Dict[str, Any]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Stream response from a full messages list.
+        Used after tool calling to generate the final response
+        with tool results included in the conversation.
+        """
+        try:
+            if self.provider in ("groq", "openai"):
+                client = self._get_openai_client()
+                stream = await client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=temperature or self.default_temperature,
+                    max_tokens=max_tokens or self.default_max_tokens,
+                    top_p=self.default_top_p,
+                    stream=True,
+                )
+                async for chunk in stream:
+                    delta = chunk.choices[0].delta if chunk.choices else None
+                    if delta and delta.content:
+                        yield delta.content
+            else:
+                # Ollama: extract system/history/prompt from messages
+                system = None
+                history = []
+                prompt = ""
+                for m in messages:
+                    if m["role"] == "system":
+                        system = m["content"]
+                    elif m["role"] == "user":
+                        prompt = m["content"]
+                    elif m["role"] in ("assistant", "tool"):
+                        history.append(m)
+                async for token in self._ollama_generate_stream(
+                    prompt, system, history, temperature, max_tokens
+                ):
+                    yield token
+        except Exception as e:
+            logger.error(f"Stream from messages error ({self.provider}): {e}")
+            raise
+
     # ── Public interface (same as before) ──────────────────────────────
     
     async def generate(

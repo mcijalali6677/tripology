@@ -31,6 +31,7 @@ class RAGPipeline:
     def __init__(self, top_k: int = 3, similarity_threshold: float = 0.5):
         self.top_k = top_k
         self.similarity_threshold = similarity_threshold
+        self._tool_max_tokens = 3072  # Larger limit for tool-augmented responses
     
     async def retrieve(
         self,
@@ -145,8 +146,11 @@ User's question: {query}"""
         destination: Optional[str] = None,
         history: Optional[List[Dict[str, str]]] = None,
         preloaded_chunks: Optional[List[Dict[str, Any]]] = None,
+        use_tools: bool = False,
     ):
-        """Streaming RAG: retrieve context then stream answer."""
+        """Streaming RAG: retrieve context then stream answer.
+        When use_tools=True, enables AI function calling for web price search.
+        """
         # 1. Use preloaded chunks or retrieve fresh
         chunks = preloaded_chunks if preloaded_chunks is not None else await self.retrieve(query, db, destination=destination)
         
@@ -165,8 +169,60 @@ User's question: {query}"""
 User's question: {query}"""
         else:
             augmented_prompt = query
-        
-        # 3. Stream response
+
+        # 3. Try tool-augmented generation (price search)
+        if use_tools:
+            try:
+                from app.ai.travel_tools import TRAVEL_TOOLS, execute_tool_call
+
+                # Build full messages list
+                messages: List[Dict[str, Any]] = [
+                    {"role": "system", "content": system_prompt},
+                ]
+                if history:
+                    messages.extend(history)
+                messages.append({"role": "user", "content": augmented_prompt})
+
+                # First pass: non-streaming to check if AI wants to call tools
+                tool_result = await llm_engine.generate_with_tools(
+                    messages=messages,
+                    tools=TRAVEL_TOOLS,
+                )
+
+                if tool_result.get("tool_calls"):
+                    logger.info(f"AI requested {len(tool_result['tool_calls'])} tool call(s)")
+
+                    # Add assistant message with tool calls
+                    assistant_msg: Dict[str, Any] = {
+                        "role": "assistant",
+                        "tool_calls": tool_result["tool_calls"],
+                    }
+                    if tool_result.get("content"):
+                        assistant_msg["content"] = tool_result["content"]
+                    messages.append(assistant_msg)
+
+                    # Execute each tool call and add results
+                    for tc in tool_result["tool_calls"]:
+                        result_str = await execute_tool_call(tc)
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tc["id"],
+                            "content": result_str,
+                        })
+
+                    # Stream final response with enriched tool data
+                    async for token in llm_engine.generate_stream_from_messages(
+                        messages=messages,
+                        max_tokens=self._tool_max_tokens,
+                    ):
+                        yield token
+                    return
+
+            except Exception as e:
+                logger.warning(f"Tool-augmented generation failed, falling back: {e}")
+                # Fall through to normal generation
+
+        # 4. Normal stream (no tools or tools failed)
         async for token in llm_engine.generate_stream(
             prompt=augmented_prompt,
             system=system_prompt,

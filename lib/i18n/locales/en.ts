@@ -1256,6 +1256,11 @@ const en = {
     recommendedItems: "Trip Suggestions",
     addToBasket: "Add",
     added: "Added ✓",
+    buyOnline: "Buy Online",
+    verifiedPrice: "Verified Price ⚡",
+    estimatedPrice: "Estimated Price",
+    purchaseFrom: "Buy from",
+    searchingPrices: "Searching for prices...",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

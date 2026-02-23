@@ -1246,6 +1246,11 @@ const fa = {
     recommendedItems: "پیشنهادات سفر",
     addToBasket: "افزودن",
     added: "اضافه شد ✓",
+    buyOnline: "خرید آنلاین",
+    verifiedPrice: "قیمت تأیید شده ⚡",
+    estimatedPrice: "قیمت تخمینی",
+    purchaseFrom: "خرید از",
+    searchingPrices: "در حال جستجوی قیمت‌ها...",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

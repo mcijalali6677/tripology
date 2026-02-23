@@ -1179,6 +1179,11 @@ const fr = {
     recommendedItems: "Suggestions de voyage",
     addToBasket: "Ajouter",
     added: "Ajouté ✓",
+    buyOnline: "Acheter en ligne",
+    verifiedPrice: "Prix vérifié ⚡",
+    estimatedPrice: "Prix estimé",
+    purchaseFrom: "Acheter sur",
+    searchingPrices: "Recherche de prix...",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

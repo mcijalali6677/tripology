@@ -6,7 +6,7 @@ import {
   Send, Bot, User, Sparkles, MapPin, Calendar, DollarSign,
   Plane, Hotel, Utensils, Camera, ChevronDown, X, Maximize2,
   Minimize2, RotateCcw, Star, Clock, ArrowRight, Loader2, Globe,
-  ShoppingCart, Plus, Minus, Trash2, Package
+  ShoppingCart, Plus, Minus, Trash2, Package, ExternalLink, BadgeCheck, BadgeAlert
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -39,6 +39,9 @@ interface BasketItem {
   duration: string
   cost: string
   image_hint: string
+  purchase_url: string
+  purchase_methods: string
+  price_source: string
 }
 
 function parseBasketItems(text: string): BasketItem[] {
@@ -68,6 +71,9 @@ function parseBasketItems(text: string): BasketItem[] {
           duration: item.duration || "",
           cost: item.cost || "",
           image_hint: item.image_hint || item.title,
+          purchase_url: item.purchase_url || "",
+          purchase_methods: item.purchase_methods || "",
+          price_source: item.price_source || "",
         })
       }
     }
@@ -502,9 +508,22 @@ export function AIChatPlanner({
                             <span className="text-muted-foreground">{item.cost}</span>
                           </div>
                         </div>
-                        <button onClick={() => removeFromBasket(item.id)} className="text-red-400 hover:text-red-600 shrink-0 ms-2">
-                          <Trash2 className="size-3" />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0 ms-2">
+                          {item.purchase_url && item.purchase_url.startsWith("http") && (
+                            <a
+                              href={item.purchase_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:text-blue-700"
+                              title={t("chatPlanner.buyOnline") || "خرید آنلاین"}
+                            >
+                              <ExternalLink className="size-3" />
+                            </a>
+                          )}
+                          <button onClick={() => removeFromBasket(item.id)} className="text-red-400 hover:text-red-600">
+                            <Trash2 className="size-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-1.5 border-t text-xs font-semibold">
@@ -632,31 +651,67 @@ export function AIChatPlanner({
                                       <Clock className="size-2.5" /> {item.duration}
                                     </span>
                                   )}
-                                  {item.cost && (
-                                    <span className="flex items-center gap-0.5 font-semibold text-forest">
+                                </div>
+                                {/* Price with verification badge */}
+                                {item.cost && (
+                                  <div className="flex items-center gap-1.5 mt-1.5">
+                                    <span className="flex items-center gap-0.5 text-[11px] font-semibold text-forest">
                                       <DollarSign className="size-2.5" /> {item.cost}
                                     </span>
-                                  )}
-                                </div>
+                                    {item.price_source && (
+                                      <span className={cn(
+                                        "text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5",
+                                        item.cost.includes("⚡") || item.cost.includes("verified")
+                                          ? "bg-emerald-100 text-emerald-700"
+                                          : item.cost.includes("تخمینی") || item.cost.includes("~")
+                                          ? "bg-amber-100 text-amber-700"
+                                          : "bg-gray-100 text-gray-600"
+                                      )}>
+                                        {item.cost.includes("⚡") ? <BadgeCheck className="size-2.5" /> : <BadgeAlert className="size-2.5" />}
+                                        {item.price_source}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {/* Purchase methods */}
+                                {item.purchase_methods && (
+                                  <div className="text-[10px] text-muted-foreground mt-1">
+                                    🛒 {item.purchase_methods}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant={isInBasket(item.title) ? "outline" : "default"}
-                              className={cn(
-                                "h-7 text-[10px] shrink-0",
-                                isInBasket(item.title)
-                                  ? "border-green-300 bg-green-50 text-green-700"
-                                  : "bg-forest hover:bg-forest/90"
+                            <div className="flex flex-col gap-1 shrink-0">
+                              <Button
+                                size="sm"
+                                variant={isInBasket(item.title) ? "outline" : "default"}
+                                className={cn(
+                                  "h-7 text-[10px]",
+                                  isInBasket(item.title)
+                                    ? "border-green-300 bg-green-50 text-green-700"
+                                    : "bg-forest hover:bg-forest/90"
+                                )}
+                                onClick={() => isInBasket(item.title) ? removeFromBasket(item.id) : addToBasket(item)}
+                              >
+                                {isInBasket(item.title) ? (
+                                  <><Minus className="size-3 me-1" /> {t("chatPlanner.added") || "اضافه شد"}</>
+                                ) : (
+                                  <><Plus className="size-3 me-1" /> {t("chatPlanner.addToBasket") || "افزودن"}</>
+                                )}
+                              </Button>
+                              {/* Purchase link button */}
+                              {item.purchase_url && item.purchase_url.startsWith("http") && (
+                                <a
+                                  href={item.purchase_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center gap-1 h-6 text-[9px] font-medium rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors px-2"
+                                >
+                                  <ExternalLink className="size-2.5" />
+                                  {t("chatPlanner.buyOnline") || "خرید آنلاین"}
+                                </a>
                               )}
-                              onClick={() => isInBasket(item.title) ? removeFromBasket(item.id) : addToBasket(item)}
-                            >
-                              {isInBasket(item.title) ? (
-                                <><Minus className="size-3 me-1" /> {t("chatPlanner.added") || "اضافه شد"}</>
-                              ) : (
-                                <><Plus className="size-3 me-1" /> {t("chatPlanner.addToBasket") || "افزودن"}</>
-                              )}
-                            </Button>
+                            </div>
                           </div>
                         </motion.div>
                       ))}
