@@ -131,10 +131,11 @@ export default function ProfilePage() {
   // Merge real user data with mock data when authenticated
   const displayUser = isAuthenticated && user ? {
     ...userData,
-    name: user.full_name || user.username || userData.name,
+    name: user.full_name || user.username || t("profile.mockName"),
     email: user.email || userData.email,
     avatar: user.avatar_url || userData.avatar,
-    location: user.country || userData.location,
+    location: user.country || t("profile.mockLocation"),
+    joinedDate: t("profile.mockJoinedDate"),
     travelPersonality: user.personality_scores ? {
       ...userData.travelPersonality,
       scores: {
@@ -146,7 +147,12 @@ export default function ProfilePage() {
         nature: user.personality_scores.nature === "high" ? 90 : user.personality_scores.nature === "medium" ? 60 : 30,
       }
     } : userData.travelPersonality,
-  } : userData
+  } : {
+    ...userData,
+    name: t("profile.mockName"),
+    location: t("profile.mockLocation"),
+    joinedDate: t("profile.mockJoinedDate"),
+  }
   
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -253,8 +259,8 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <p className="text-sm text-forest font-medium">{t("profile.upcomingTrip")}</p>
-                  <p className="text-lg font-bold">{userData.activeTrips[0].destination}</p>
-                  <p className="text-sm text-muted-foreground">{userData.activeTrips[0].dates}</p>
+                  <p className="text-lg font-bold">{t(`profile.${userData.activeTrips[0].destination.toLowerCase()}`)}</p>
+                  <p className="text-sm text-muted-foreground">{t("profile.tripDates")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -325,7 +331,7 @@ export default function ProfilePage() {
                         <MapPin className="size-5 text-forest" />
                       </div>
                       <div>
-                        <p className="font-medium">{rec.destination}</p>
+                        <p className="font-medium">{t(`profile.${rec.destination.toLowerCase()}`)}</p>
                         <p className="text-xs text-muted-foreground">{t(`profile.${rec.reason}`)}</p>
                       </div>
                     </div>
@@ -351,9 +357,9 @@ export default function ProfilePage() {
                     </Button>
                   </div>
                   <div className="p-3">
-                    <h4 className="font-semibold">{item.destination}</h4>
-                    <p className="text-sm text-muted-foreground">{item.country}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("profile.savedAgo")} {item.savedDate}</p>
+                    <h4 className="font-semibold">{t(`profile.${item.destinationKey}`)}</h4>
+                    <p className="text-sm text-muted-foreground">{t(`profile.${item.countryKey}`)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("profile.savedAgo")} {t(`profile.${item.savedDateKey}`)}</p>
                   </div>
                 </Card>
               ))}
@@ -370,9 +376,9 @@ export default function ProfilePage() {
                       <Map className="size-5 text-forest" />
                     </div>
                     <div>
-                      <p className="font-medium">{plan.title}</p>
+                      <p className="font-medium">{plan.id === 'raw-3' ? t("profile.honeymoonInParis") : t("profile.parisAdventure")}</p>
                       <p className="text-sm text-muted-foreground">
-                        {plan.traveler ? `${t("profile.by")} ${plan.traveler}` : plan.type} - {t("profile.purchasedOn")} {plan.purchaseDate}
+                        {plan.traveler ? `${t("profile.by")} ${plan.traveler}` : t("profile.aiOptimized")} - {t("profile.purchasedOn")} {plan.purchaseDate}
                       </p>
                     </div>
                   </div>
