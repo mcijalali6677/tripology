@@ -73,20 +73,26 @@ export async function POST(req: Request) {
     if (streamRes.ok && streamRes.body) {
       // Inject sessionId into the SSE stream so frontend can reuse it
       const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
       const reader = streamRes.body.getReader();
 
       const stream = new ReadableStream({
-        async start(controller) {
-          // Send session ID first
+        start(controller) {
+          // Send session ID first — enqueue synchronously so headers flush immediately
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            controller.enqueue(value);
-          }
-          controller.close();
+          // Pipe upstream chunks asynchronously without blocking start()
+          (async () => {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                controller.enqueue(value);
+              }
+            } catch (e) {
+              controller.error(e);
+            } finally {
+              controller.close();
+            }
+          })();
         }
       });
 
