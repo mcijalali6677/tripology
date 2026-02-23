@@ -145,6 +145,13 @@ export function AIChatPlanner({
       let fullContent = ""
       let buffer = ""
 
+      // Capture sessionId from response header (primary) or from SSE event (fallback)
+      const headerSessionId = response.headers.get("x-session-id")
+      if (headerSessionId && !currentSessionId) {
+        currentSessionId = headerSessionId
+        setSessionId(headerSessionId)
+      }
+
       if (reader) {
         while (true) {
           const { done, value } = await reader.read()

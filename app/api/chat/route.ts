@@ -69,36 +69,15 @@ export async function POST(req: Request) {
     });
 
     if (streamRes.ok && streamRes.body) {
-      const encoder = new TextEncoder();
-      const backendReader = streamRes.body.getReader();
-      const { readable, writable } = new TransformStream();
-      const writer = writable.getWriter();
-
-      // Pipe data in a detached async context so the Response starts flowing immediately
-      (async () => {
-        try {
-          // Inject sessionId as the first SSE event
-          await writer.write(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
-
-          // Forward all chunks from the backend stream
-          while (true) {
-            const { done, value } = await backendReader.read();
-            if (done) break;
-            await writer.write(value);
-          }
-        } catch (e) {
-          console.error("[chat] Pipe error:", e);
-        } finally {
-          try { await writer.close(); } catch { /* already closed */ }
-        }
-      })();
-
-      return new Response(readable, {
+      // Pass backend SSE stream directly to the client (no intermediate buffering).
+      // SessionId is sent as a response header to avoid needing a TransformStream.
+      return new Response(streamRes.body, {
         status: 200,
         headers: {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache, no-transform",
           "X-Accel-Buffering": "no",
+          "X-Session-Id": sid,
         },
       });
     }
@@ -123,6 +102,7 @@ export async function POST(req: Request) {
         headers: {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
+          "X-Session-Id": sid,
         },
       });
     }
