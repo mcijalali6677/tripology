@@ -671,17 +671,14 @@ export default function CustomTripPage() {
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        {/* SECTION 2: I will Pick Myself — header + step indicator */}
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <button
-            className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-            onClick={() => { setBrowseExpanded(!browseExpanded); if (!browseExpanded) setAiExpanded(false) }}
-          >
+        {/* SECTION 2: I will Pick Myself — static header */}
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-xl bg-secondary flex items-center justify-center">
                 <Search className="size-5 text-muted-foreground" />
               </div>
-              <div className="text-start">
+              <div>
                 <h2 className="font-semibold text-sm sm:text-base">
                   {t("customTrip.pickMyselfTitle") || "I will Pick Myself"}
                 </h2>
@@ -690,35 +687,29 @@ export default function CustomTripPage() {
                 </p>
               </div>
             </div>
-            <ChevronDown className={cn("size-5 text-muted-foreground transition-transform", browseExpanded && "rotate-180")} />
-          </button>
+          </div>
 
-          {/* Step Indicator — inside the card */}
-          {browseExpanded && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground px-4 pb-4">
-              <span className="flex items-center gap-1.5">
-                <span className="size-5 rounded-full bg-forest text-white text-[10px] font-bold flex items-center justify-center">1</span>
-                <span className="font-medium text-foreground">{t("customTrip.stepBrowse") || "Browse & pick"}</span>
-              </span>
-              <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
-              <span className="flex items-center gap-1.5">
-                <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">2</span>
-                <span>{t("customTrip.stepReview") || "Review basket"}</span>
-              </span>
-              <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
-              <span className="flex items-center gap-1.5">
-                <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">3</span>
-                <span>{t("customTrip.stepBuild") || "Build trip"}</span>
-              </span>
-            </div>
-          )}
+          {/* Step Indicator */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3 pt-3 border-t">
+            <span className="flex items-center gap-1.5">
+              <span className="size-5 rounded-full bg-forest text-white text-[10px] font-bold flex items-center justify-center">1</span>
+              <span className="font-medium text-foreground">{t("customTrip.stepBrowse") || "Browse & pick"}</span>
+            </span>
+            <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+            <span className="flex items-center gap-1.5">
+              <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">2</span>
+              <span>{t("customTrip.stepReview") || "Review basket"}</span>
+            </span>
+            <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+            <span className="flex items-center gap-1.5">
+              <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">3</span>
+              <span>{t("customTrip.stepBuild") || "Build trip"}</span>
+            </span>
+          </div>
         </div>
 
-        {/* Everything below is at PAGE level — only shown when browseExpanded */}
-        {browseExpanded && (
-          <>
-            {/* Settings — separate card */}
-            <div className="rounded-xl border bg-secondary/20 overflow-hidden">
+        {/* Settings — separate card, always visible */}
+        <div className="rounded-xl border bg-secondary/20 overflow-hidden">
               <button
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors"
                 onClick={() => setShowSettings(!showSettings)}
@@ -945,13 +936,13 @@ export default function CustomTripPage() {
               </div>
             </div>
 
-            {/* Activity Cards — horizontal scroll */}
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {/* Activity Cards — responsive grid like reference */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {filteredItems.map(item => (
                 <div
                   key={item.id}
                   className={cn(
-                    "relative shrink-0 w-[240px] sm:w-[280px] rounded-xl overflow-hidden border transition-all hover:shadow-lg group",
+                    "relative rounded-xl overflow-hidden border transition-all hover:shadow-lg group",
                     isInManualBasket(item.id) ? "ring-2 ring-forest" : ""
                   )}
                 >
@@ -998,11 +989,16 @@ export default function CustomTripPage() {
                   <div className="p-3">
                     <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
                     <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{item.description}</p>
-                    <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                    <div className="flex items-center justify-between mt-2 text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-0.5"><Clock className="size-2.5" />{item.duration}</span>
-                      <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating}</span>
-                      <span className="text-muted-foreground">({item.reviews})</span>
+                      <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating} <span className="text-muted-foreground">({item.reviews?.toLocaleString()})</span></span>
                     </div>
+                    {item.officialSite && (
+                      <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+                        <ExternalLink className="size-2.5 shrink-0" />
+                        <span>{t("customTrip.buyFromSite")} {item.officialSite}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1010,8 +1006,6 @@ export default function CustomTripPage() {
                 <p className="text-center text-sm text-muted-foreground py-6 w-full">{t("customTrip.noResults")}</p>
               )}
             </div>
-          </>
-        )}
       </div>
 
       {/* Floating My Basket Button — bottom right */}
