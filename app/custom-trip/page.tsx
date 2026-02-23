@@ -170,6 +170,7 @@ export default function CustomTripPage() {
   const [endDate, setEndDate] = useState("2026-03-25")
   const [travelers, setTravelers] = useState(2)
   const [budget, setBudget] = useState<"budget" | "mid" | "luxury">("mid")
+  const [accommodationStatus, setAccommodationStatus] = useState<"booked" | "planning" | "undecided">("undecided")
 
   // UI State
   const [aiExpanded, setAiExpanded] = useState(true)
@@ -719,7 +720,7 @@ export default function CustomTripPage() {
                   <span className="font-semibold text-sm">{t("customTrip.tripSettings")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">{t("customTrip.edit")}</span>
+                  <span className="text-xs text-muted-foreground">{showSettings ? t("customTrip.hide") : t("customTrip.edit")}</span>
                   <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", showSettings && "rotate-180")} />
                 </div>
               </button>
@@ -762,51 +763,140 @@ export default function CustomTripPage() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
-                        <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border">
-                          <MapPin className="size-4 text-forest" />
-                          <span className="font-medium text-sm">{destination}</span>
+                    <div className="px-4 pb-4 space-y-5">
+                      {/* Row 1: Destination | Start Date | End Date | Travelers — all in one row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border h-10">
+                            <MapPin className="size-4 text-forest shrink-0" />
+                            <span className="font-medium text-sm flex-1">{destination}</span>
+                            <ChevronDown className="size-4 text-muted-foreground" />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
+                          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-10" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
+                          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-10" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
+                          <div className="flex items-center gap-2 h-10">
+                            <Button variant="outline" size="icon" className="size-10 shrink-0" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
+                            <span className="w-10 text-center font-semibold text-lg">{travelers}</span>
+                            <Button variant="outline" size="icon" className="size-10 shrink-0" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
-                          <span className="w-8 text-center font-medium">{travelers}</span>
-                          <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
-                        <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
-                        <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9" />
-                      </div>
-                      <div className="col-span-2 space-y-1.5">
+
+                      {/* Row 2: Budget Level — 3 large cards */}
+                      <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">{t("customTrip.budget")}</Label>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-3 gap-3">
                           {(["budget", "mid", "luxury"] as const).map(val => {
                             const labels: Record<string, string> = {
                               budget: t("customTrip.budgetLabel"),
                               mid: t("customTrip.midRange"),
                               luxury: t("customTrip.luxury"),
                             }
+                            const descs: Record<string, string> = {
+                              budget: t("customTrip.budgetUnder100"),
+                              mid: t("customTrip.budgetMidRange"),
+                              luxury: t("customTrip.budgetOver250"),
+                            }
+                            const isActive = budget === val
                             return (
-                              <Button
+                              <button
                                 key={val}
-                                variant={budget === val ? "default" : "outline"}
-                                className="flex-1 h-9 text-sm"
+                                className={cn(
+                                  "rounded-xl border p-4 text-start transition-all",
+                                  isActive
+                                    ? "bg-forest text-white border-forest shadow-md"
+                                    : "bg-background hover:bg-secondary/30 border-border"
+                                )}
                                 onClick={() => setBudget(val)}
                               >
-                                {labels[val]}
-                              </Button>
+                                <div className="font-semibold text-sm">{labels[val]}</div>
+                                <div className={cn("text-xs mt-0.5", isActive ? "text-white/80" : "text-muted-foreground")}>
+                                  {descs[val]}
+                                </div>
+                              </button>
                             )
                           })}
                         </div>
+                      </div>
+
+                      {/* Row 3: Accommodation */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Hotel className="size-4 text-muted-foreground" />
+                          <span className="font-semibold text-sm">{t("customTrip.accommodation")}</span>
+                          <span className="text-xs text-muted-foreground">{t("customTrip.addStays")}</span>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">{t("customTrip.haveYouBooked")}</p>
+
+                        <div className="grid grid-cols-3 gap-3">
+                          <button
+                            className={cn(
+                              "rounded-xl border p-4 flex flex-col items-center gap-2 text-center transition-all",
+                              accommodationStatus === "booked"
+                                ? "bg-forest text-white border-forest shadow-md"
+                                : "bg-background hover:bg-secondary/30"
+                            )}
+                            onClick={() => setAccommodationStatus("booked")}
+                          >
+                            <CheckCircle className={cn("size-6", accommodationStatus === "booked" ? "text-white" : "text-forest")} />
+                            <div className="font-semibold text-sm">{t("customTrip.alreadyBooked")}</div>
+                            <div className={cn("text-[11px]", accommodationStatus === "booked" ? "text-white/80" : "text-muted-foreground")}>
+                              {t("customTrip.bookedDesc")}
+                            </div>
+                          </button>
+                          <button
+                            className={cn(
+                              "rounded-xl border p-4 flex flex-col items-center gap-2 text-center transition-all",
+                              accommodationStatus === "planning"
+                                ? "bg-forest text-white border-forest shadow-md"
+                                : "bg-background hover:bg-secondary/30"
+                            )}
+                            onClick={() => setAccommodationStatus("planning")}
+                          >
+                            <CalendarCheck className={cn("size-6", accommodationStatus === "planning" ? "text-white" : "text-blue-500")} />
+                            <div className="font-semibold text-sm">{t("customTrip.planningToBook")}</div>
+                            <div className={cn("text-[11px]", accommodationStatus === "planning" ? "text-white/80" : "text-muted-foreground")}>
+                              {t("customTrip.planningDesc")}
+                            </div>
+                          </button>
+                          <button
+                            className={cn(
+                              "rounded-xl border p-4 flex flex-col items-center gap-2 text-center transition-all",
+                              accommodationStatus === "undecided"
+                                ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                                : "bg-background hover:bg-secondary/30"
+                            )}
+                            onClick={() => setAccommodationStatus("undecided")}
+                          >
+                            <HelpCircle className={cn("size-6", accommodationStatus === "undecided" ? "text-white" : "text-amber-500")} />
+                            <div className="font-semibold text-sm">{t("customTrip.decideLater")}</div>
+                            <div className={cn("text-[11px]", accommodationStatus === "undecided" ? "text-white/80" : "text-muted-foreground")}>
+                              {t("customTrip.undecidedDesc")}
+                            </div>
+                          </button>
+                        </div>
+
+                        {/* AI will help info box */}
+                        {accommodationStatus === "undecided" && (
+                          <div className="flex items-start gap-3 bg-forest/5 border border-forest/20 rounded-xl p-4">
+                            <Sparkles className="size-5 text-forest shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-forest">{t("customTrip.aiWillHelp")}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{t("customTrip.aiWillHelpDesc")}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>
