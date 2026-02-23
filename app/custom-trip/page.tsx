@@ -671,7 +671,7 @@ export default function CustomTripPage() {
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        {/* SECTION 2: I will Pick Myself */}
+        {/* SECTION 2: I will Pick Myself — header + step indicator */}
         <div className="rounded-xl border bg-card overflow-hidden">
           <button
             className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
@@ -693,334 +693,325 @@ export default function CustomTripPage() {
             <ChevronDown className={cn("size-5 text-muted-foreground transition-transform", browseExpanded && "rotate-180")} />
           </button>
 
-          <AnimatePresence>
-            {browseExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="px-4 pb-4 space-y-5">
-
-                  {/* Step Indicator */}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-5 rounded-full bg-forest text-white text-[10px] font-bold flex items-center justify-center">1</span>
-                      <span className="font-medium text-foreground">{t("customTrip.stepBrowse") || "Browse & pick"}</span>
-                    </span>
-                    <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">2</span>
-                      <span>{t("customTrip.stepReview") || "Review basket"}</span>
-                    </span>
-                    <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">3</span>
-                      <span>{t("customTrip.stepBuild") || "Build trip"}</span>
-                    </span>
-                  </div>
-
-                  {/* Settings inside this section */}
-                  <div className="rounded-xl border bg-secondary/20 overflow-hidden">
-                    <button
-                      className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors"
-                      onClick={() => setShowSettings(!showSettings)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <SlidersHorizontal className="size-4 text-muted-foreground" />
-                        <span className="font-semibold text-sm">{t("customTrip.tripSettings")}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">{t("customTrip.edit")}</span>
-                        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", showSettings && "rotate-180")} />
-                      </div>
-                    </button>
-
-                    {/* Settings summary (collapsed) */}
-                    {!showSettings && (
-                      <div className="px-4 pb-3 space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
-                            <MapPin className="size-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm">{destination}</span>
-                          </div>
-                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
-                            <CalendarDays className="size-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm">{tripDays} {t("common.days")}</span>
-                          </div>
-                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
-                            <Users className="size-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm">{travelers} {t("common.people")}</span>
-                          </div>
-                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
-                            <Wallet className="size-4 text-muted-foreground shrink-0" />
-                            <span className="text-sm">{budget === "budget" ? t("customTrip.budgetLabel") : budget === "mid" ? t("customTrip.midRange") : t("customTrip.luxury")}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
-                          <HelpCircle className="size-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm text-muted-foreground">{t("customTrip.accommodationTBD")}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Settings edit (expanded) */}
-                    <AnimatePresence>
-                      {showSettings && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
-                              <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border">
-                                <MapPin className="size-4 text-forest" />
-                                <span className="font-medium text-sm">{destination}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
-                                <span className="w-8 text-center font-medium">{travelers}</span>
-                                <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
-                              </div>
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
-                              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
-                              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9" />
-                            </div>
-                            <div className="col-span-2 space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">{t("customTrip.budget")}</Label>
-                              <div className="flex gap-2">
-                                {(["budget", "mid", "luxury"] as const).map(val => {
-                                  const labels: Record<string, string> = {
-                                    budget: t("customTrip.budgetLabel"),
-                                    mid: t("customTrip.midRange"),
-                                    luxury: t("customTrip.luxury"),
-                                  }
-                                  return (
-                                    <Button
-                                      key={val}
-                                      variant={budget === val ? "default" : "outline"}
-                                      className="flex-1 h-9 text-sm"
-                                      onClick={() => setBudget(val)}
-                                    >
-                                      {labels[val]}
-                                    </Button>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Category Icons — large colorful grid */}
-                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
-                    {categories.map(([key, category]) => {
-                      const Icon = category.icon
-                      const basketCount = manualBasket.filter(item =>
-                        category.items.some(catItem => catItem.id === item.id)
-                      ).length
-                      const colorMap: Record<CategoryKey, { bg: string; activeBg: string; icon: string; activeIcon: string }> = {
-                        activities:  { bg: "bg-blue-50",   activeBg: "bg-blue-600",   icon: "text-blue-600",    activeIcon: "text-white" },
-                        liveEvents:  { bg: "bg-rose-50",   activeBg: "bg-rose-500",   icon: "text-rose-500",    activeIcon: "text-white" },
-                        restaurants: { bg: "bg-emerald-50", activeBg: "bg-emerald-600", icon: "text-emerald-600", activeIcon: "text-white" },
-                        cafes:       { bg: "bg-orange-50",  activeBg: "bg-orange-500",  icon: "text-orange-500",  activeIcon: "text-white" },
-                        transport:   { bg: "bg-teal-50",    activeBg: "bg-teal-600",    icon: "text-teal-600",    activeIcon: "text-white" },
-                        experiences: { bg: "bg-pink-50",    activeBg: "bg-pink-500",    icon: "text-pink-500",    activeIcon: "text-white" },
-                      }
-                      const colors = colorMap[key] || colorMap.activities
-                      const isActive = selectedCategory === key
-                      return (
-                        <button
-                          key={key}
-                          className="flex flex-col items-center gap-1.5 shrink-0 relative group"
-                          onClick={() => setSelectedCategory(key)}
-                        >
-                          <div className={cn(
-                            "size-14 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-sm",
-                            isActive ? colors.activeBg + " shadow-md scale-105" : colors.bg + " hover:shadow-md hover:scale-105"
-                          )}>
-                            <Icon className={cn("size-7", isActive ? colors.activeIcon : colors.icon)} />
-                          </div>
-                          <span className={cn(
-                            "text-[10px] font-medium leading-tight text-center max-w-[60px] truncate",
-                            isActive ? "text-foreground" : "text-muted-foreground"
-                          )}>
-                            {categoryLabelMap[key]}
-                          </span>
-                          {basketCount > 0 && (
-                            <span className="absolute -top-1 -end-1 size-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
-                              {basketCount}
-                            </span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Search + Filter + Popular — single row */}
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1 min-w-0">
-                      <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t("customTrip.searchCategory", { category: categoryLabelMap[selectedCategory] })}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="ps-10 h-10"
-                      />
-                    </div>
-                    <Button
-                      variant={showFilters ? "secondary" : "outline"}
-                      size="icon"
-                      className="size-10 shrink-0"
-                      onClick={() => setShowFilters(!showFilters)}
-                    >
-                      <SlidersHorizontal className="size-4" />
-                    </Button>
-                    <Button
-                      variant={popularOnly ? "default" : "outline"}
-                      size="sm"
-                      className="h-10 shrink-0 gap-1.5 px-3"
-                      onClick={() => setPopularOnly(!popularOnly)}
-                    >
-                      <Star className={cn("size-4", popularOnly && "fill-current")} />
-                      <span className="text-xs">{t("customTrip.popular")}</span>
-                    </Button>
-                  </div>
-
-                  {/* Price Filters */}
-                  {showFilters && (
-                    <div className="flex flex-wrap items-center gap-2 bg-secondary/20 rounded-lg p-3">
-                      <span className="text-xs text-muted-foreground me-1">{t("customTrip.price")}:</span>
-                      {[
-                        { value: "all", label: t("customTrip.all") },
-                        { value: "free", label: t("customTrip.free") },
-                        { value: "budget", label: t("customTrip.under20") },
-                        { value: "mid", label: t("customTrip.range20to50") },
-                        { value: "high", label: t("customTrip.over50") },
-                      ].map(opt => (
-                        <Button
-                          key={opt.value}
-                          variant={priceFilter === opt.value ? "default" : "outline"}
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => setPriceFilter(opt.value as typeof priceFilter)}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Category Title + Count */}
-                  <div className="flex items-center gap-3">
-                    {(() => {
-                      const Icon = currentCategory.icon
-                      const colorMap: Record<CategoryKey, string> = {
-                        activities: "bg-blue-600", liveEvents: "bg-rose-500",
-                        restaurants: "bg-emerald-600", cafes: "bg-orange-500",
-                        transport: "bg-teal-600", experiences: "bg-pink-500",
-                      }
-                      return (
-                        <div className={cn("size-9 rounded-xl flex items-center justify-center", colorMap[selectedCategory])}>
-                          <Icon className="size-5 text-white" />
-                        </div>
-                      )
-                    })()}
-                    <div>
-                      <h3 className="font-bold text-base sm:text-lg">{categoryLabelMap[selectedCategory]}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {t("customTrip.optionsAvailable", { count: String(filteredItems.length) })}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Activity Cards — horizontal scroll */}
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                    {filteredItems.map(item => (
-                      <div
-                        key={item.id}
-                        className={cn(
-                          "relative shrink-0 w-[240px] sm:w-[280px] rounded-xl overflow-hidden border transition-all hover:shadow-lg group",
-                          isInManualBasket(item.id) ? "ring-2 ring-forest" : ""
-                        )}
-                      >
-                        {/* Image */}
-                        <div className="relative h-[180px] sm:h-[200px]">
-                          <Image
-                            src={item.image || "/paris-eiffel-tower-sunset.jpg"}
-                            alt={item.title}
-                            fill
-                            sizes="280px"
-                            className="object-cover"
-                          />
-                          {/* MUST DO / Free badge */}
-                          {item.popular && (
-                            <Badge className="absolute top-2.5 start-2.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
-                              {t("customTrip.mustDo")}
-                            </Badge>
-                          )}
-                          {item.cost === 0 && !item.popular && (
-                            <Badge className="absolute top-2.5 start-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
-                              {t("customTrip.free")}
-                            </Badge>
-                          )}
-                          {/* + button overlay */}
-                          <button
-                            onClick={() => toggleManualBasket(item as Item)}
-                            className={cn(
-                              "absolute top-2.5 end-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all",
-                              isInManualBasket(item.id)
-                                ? "bg-forest text-white"
-                                : "bg-white/80 backdrop-blur text-foreground hover:bg-white"
-                            )}
-                          >
-                            {isInManualBasket(item.id) ? <Check className="size-5" /> : <Plus className="size-5" />}
-                          </button>
-                          {/* Price at bottom-right */}
-                          <div className="absolute bottom-2.5 end-2.5 bg-white/90 backdrop-blur rounded-lg px-2.5 py-1 shadow-sm">
-                            <span className="font-bold text-sm">
-                              {item.cost === 0 ? t("customTrip.free") : "$" + item.cost}
-                            </span>
-                          </div>
-                        </div>
-                        {/* Card info */}
-                        <div className="p-3">
-                          <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
-                          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{item.description}</p>
-                          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-0.5"><Clock className="size-2.5" />{item.duration}</span>
-                            <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating}</span>
-                            <span className="text-muted-foreground">({item.reviews})</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {filteredItems.length === 0 && (
-                      <p className="text-center text-sm text-muted-foreground py-6 w-full">{t("customTrip.noResults")}</p>
-                    )}
-                  </div>
-
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Step Indicator — inside the card */}
+          {browseExpanded && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground px-4 pb-4">
+              <span className="flex items-center gap-1.5">
+                <span className="size-5 rounded-full bg-forest text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                <span className="font-medium text-foreground">{t("customTrip.stepBrowse") || "Browse & pick"}</span>
+              </span>
+              <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+              <span className="flex items-center gap-1.5">
+                <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">2</span>
+                <span>{t("customTrip.stepReview") || "Review basket"}</span>
+              </span>
+              <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+              <span className="flex items-center gap-1.5">
+                <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">3</span>
+                <span>{t("customTrip.stepBuild") || "Build trip"}</span>
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Everything below is at PAGE level — only shown when browseExpanded */}
+        {browseExpanded && (
+          <>
+            {/* Settings — separate card */}
+            <div className="rounded-xl border bg-secondary/20 overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="size-4 text-muted-foreground" />
+                  <span className="font-semibold text-sm">{t("customTrip.tripSettings")}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">{t("customTrip.edit")}</span>
+                  <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", showSettings && "rotate-180")} />
+                </div>
+              </button>
+
+              {/* Settings summary (collapsed) */}
+              {!showSettings && (
+                <div className="px-4 pb-3 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                      <MapPin className="size-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm">{destination}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                      <CalendarDays className="size-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm">{tripDays} {t("common.days")}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                      <Users className="size-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm">{travelers} {t("common.people")}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                      <Wallet className="size-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm">{budget === "budget" ? t("customTrip.budgetLabel") : budget === "mid" ? t("customTrip.midRange") : t("customTrip.luxury")}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                    <HelpCircle className="size-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-muted-foreground">{t("customTrip.accommodationTBD")}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Settings edit (expanded) */}
+              <AnimatePresence>
+                {showSettings && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
+                        <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border">
+                          <MapPin className="size-4 text-forest" />
+                          <span className="font-medium text-sm">{destination}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
+                          <span className="w-8 text-center font-medium">{travelers}</span>
+                          <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
+                        <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
+                        <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9" />
+                      </div>
+                      <div className="col-span-2 space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">{t("customTrip.budget")}</Label>
+                        <div className="flex gap-2">
+                          {(["budget", "mid", "luxury"] as const).map(val => {
+                            const labels: Record<string, string> = {
+                              budget: t("customTrip.budgetLabel"),
+                              mid: t("customTrip.midRange"),
+                              luxury: t("customTrip.luxury"),
+                            }
+                            return (
+                              <Button
+                                key={val}
+                                variant={budget === val ? "default" : "outline"}
+                                className="flex-1 h-9 text-sm"
+                                onClick={() => setBudget(val)}
+                              >
+                                {labels[val]}
+                              </Button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Category Icons — large colorful grid */}
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
+              {categories.map(([key, category]) => {
+                const Icon = category.icon
+                const basketCount = manualBasket.filter(item =>
+                  category.items.some(catItem => catItem.id === item.id)
+                ).length
+                const colorMap: Record<CategoryKey, { bg: string; activeBg: string; icon: string; activeIcon: string }> = {
+                  activities:  { bg: "bg-blue-50",   activeBg: "bg-blue-600",   icon: "text-blue-600",    activeIcon: "text-white" },
+                  liveEvents:  { bg: "bg-rose-50",   activeBg: "bg-rose-500",   icon: "text-rose-500",    activeIcon: "text-white" },
+                  restaurants: { bg: "bg-emerald-50", activeBg: "bg-emerald-600", icon: "text-emerald-600", activeIcon: "text-white" },
+                  cafes:       { bg: "bg-orange-50",  activeBg: "bg-orange-500",  icon: "text-orange-500",  activeIcon: "text-white" },
+                  transport:   { bg: "bg-teal-50",    activeBg: "bg-teal-600",    icon: "text-teal-600",    activeIcon: "text-white" },
+                  experiences: { bg: "bg-pink-50",    activeBg: "bg-pink-500",    icon: "text-pink-500",    activeIcon: "text-white" },
+                }
+                const colors = colorMap[key] || colorMap.activities
+                const isActive = selectedCategory === key
+                return (
+                  <button
+                    key={key}
+                    className="flex flex-col items-center gap-1.5 shrink-0 relative group"
+                    onClick={() => setSelectedCategory(key)}
+                  >
+                    <div className={cn(
+                      "size-14 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-sm",
+                      isActive ? colors.activeBg + " shadow-md scale-105" : colors.bg + " hover:shadow-md hover:scale-105"
+                    )}>
+                      <Icon className={cn("size-7", isActive ? colors.activeIcon : colors.icon)} />
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-medium leading-tight text-center max-w-[60px] truncate",
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    )}>
+                      {categoryLabelMap[key]}
+                    </span>
+                    {basketCount > 0 && (
+                      <span className="absolute -top-1 -end-1 size-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                        {basketCount}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Search + Filter + Popular — single row */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("customTrip.searchCategory", { category: categoryLabelMap[selectedCategory] })}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="ps-10 h-10"
+                />
+              </div>
+              <Button
+                variant={showFilters ? "secondary" : "outline"}
+                size="icon"
+                className="size-10 shrink-0"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal className="size-4" />
+              </Button>
+              <Button
+                variant={popularOnly ? "default" : "outline"}
+                size="sm"
+                className="h-10 shrink-0 gap-1.5 px-3"
+                onClick={() => setPopularOnly(!popularOnly)}
+              >
+                <Star className={cn("size-4", popularOnly && "fill-current")} />
+                <span className="text-xs">{t("customTrip.popular")}</span>
+              </Button>
+            </div>
+
+            {/* Price Filters */}
+            {showFilters && (
+              <div className="flex flex-wrap items-center gap-2 bg-secondary/20 rounded-lg p-3">
+                <span className="text-xs text-muted-foreground me-1">{t("customTrip.price")}:</span>
+                {[
+                  { value: "all", label: t("customTrip.all") },
+                  { value: "free", label: t("customTrip.free") },
+                  { value: "budget", label: t("customTrip.under20") },
+                  { value: "mid", label: t("customTrip.range20to50") },
+                  { value: "high", label: t("customTrip.over50") },
+                ].map(opt => (
+                  <Button
+                    key={opt.value}
+                    variant={priceFilter === opt.value ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setPriceFilter(opt.value as typeof priceFilter)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {/* Category Title + Count */}
+            <div className="flex items-center gap-3">
+              {(() => {
+                const Icon = currentCategory.icon
+                const colorMap: Record<CategoryKey, string> = {
+                  activities: "bg-blue-600", liveEvents: "bg-rose-500",
+                  restaurants: "bg-emerald-600", cafes: "bg-orange-500",
+                  transport: "bg-teal-600", experiences: "bg-pink-500",
+                }
+                return (
+                  <div className={cn("size-9 rounded-xl flex items-center justify-center", colorMap[selectedCategory])}>
+                    <Icon className="size-5 text-white" />
+                  </div>
+                )
+              })()}
+              <div>
+                <h3 className="font-bold text-base sm:text-lg">{categoryLabelMap[selectedCategory]}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {t("customTrip.optionsAvailable", { count: String(filteredItems.length) })}
+                </p>
+              </div>
+            </div>
+
+            {/* Activity Cards — horizontal scroll */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {filteredItems.map(item => (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "relative shrink-0 w-[240px] sm:w-[280px] rounded-xl overflow-hidden border transition-all hover:shadow-lg group",
+                    isInManualBasket(item.id) ? "ring-2 ring-forest" : ""
+                  )}
+                >
+                  {/* Image */}
+                  <div className="relative h-[180px] sm:h-[200px]">
+                    <Image
+                      src={item.image || "/paris-eiffel-tower-sunset.jpg"}
+                      alt={item.title}
+                      fill
+                      sizes="280px"
+                      className="object-cover"
+                    />
+                    {/* MUST DO / Free badge */}
+                    {item.popular && (
+                      <Badge className="absolute top-2.5 start-2.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
+                        {t("customTrip.mustDo")}
+                      </Badge>
+                    )}
+                    {item.cost === 0 && !item.popular && (
+                      <Badge className="absolute top-2.5 start-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
+                        {t("customTrip.free")}
+                      </Badge>
+                    )}
+                    {/* + button overlay */}
+                    <button
+                      onClick={() => toggleManualBasket(item as Item)}
+                      className={cn(
+                        "absolute top-2.5 end-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all",
+                        isInManualBasket(item.id)
+                          ? "bg-forest text-white"
+                          : "bg-white/80 backdrop-blur text-foreground hover:bg-white"
+                      )}
+                    >
+                      {isInManualBasket(item.id) ? <Check className="size-5" /> : <Plus className="size-5" />}
+                    </button>
+                    {/* Price at bottom-right */}
+                    <div className="absolute bottom-2.5 end-2.5 bg-white/90 backdrop-blur rounded-lg px-2.5 py-1 shadow-sm">
+                      <span className="font-bold text-sm">
+                        {item.cost === 0 ? t("customTrip.free") : "$" + item.cost}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Card info */}
+                  <div className="p-3">
+                    <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{item.description}</p>
+                    <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-0.5"><Clock className="size-2.5" />{item.duration}</span>
+                      <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating}</span>
+                      <span className="text-muted-foreground">({item.reviews})</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredItems.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-6 w-full">{t("customTrip.noResults")}</p>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Floating My Basket Button — bottom right */}
