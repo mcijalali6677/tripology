@@ -26,6 +26,9 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { parisData } from "@/lib/paris-data"
 import { cn } from "@/lib/utils"
+import { JalaliDatePicker } from "@/components/jalali-date-picker"
+import { DestinationPicker } from "@/components/destination-picker"
+import { gregorianToJalali, toPersianDigits, PERSIAN_MONTHS } from "@/lib/jalali"
 
 // Icon map
 const iconMap: Record<string, LucideIcon> = {
@@ -238,6 +241,11 @@ export default function CustomTripPage() {
   const tripDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
   const formatDate = (dateStr: string) => {
+    if (locale === "fa") {
+      const [gy, gm, gd] = dateStr.split("-").map(Number)
+      const [jy, jm, jd] = gregorianToJalali(gy, gm, gd)
+      return `${toPersianDigits(jd)} ${PERSIAN_MONTHS[jm - 1]}`
+    }
     const date = new Date(dateStr)
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
   }
@@ -741,7 +749,7 @@ export default function CustomTripPage() {
                     </div>
                     <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
                       <CalendarDays className="size-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm">{tripDays} {t("common.days")}</span>
+                      <span className="text-sm">{formatDate(startDate)} - {formatDate(endDate)} ({locale === "fa" ? toPersianDigits(tripDays) : tripDays} {t("common.days")})</span>
                     </div>
                     <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
                       <Users className="size-4 text-muted-foreground shrink-0" />
@@ -774,19 +782,27 @@ export default function CustomTripPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
-                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border h-10">
-                            <MapPin className="size-4 text-forest shrink-0" />
-                            <span className="font-medium text-sm flex-1">{destination}</span>
-                            <ChevronDown className="size-4 text-muted-foreground" />
-                          </div>
+                          <DestinationPicker
+                            value={destination}
+                            onChange={setDestination}
+                            locale={locale}
+                          />
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
-                          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-10" />
+                          {locale === "fa" ? (
+                            <JalaliDatePicker value={startDate} onChange={setStartDate} />
+                          ) : (
+                            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-10" />
+                          )}
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
-                          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-10" />
+                          {locale === "fa" ? (
+                            <JalaliDatePicker value={endDate} onChange={setEndDate} />
+                          ) : (
+                            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-10" />
+                          )}
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
