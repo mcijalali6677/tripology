@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     fr: "French",
     en: "English",
   };
-  const userLocale = locale || "en";
+  const userLocale = locale || "fa";
   const localeInstruction = userLocale !== "en"
     ? `[IMPORTANT: Respond entirely in ${LOCALE_NAMES[userLocale] || userLocale}. Do NOT respond in English.] `
     : "";
@@ -35,71 +35,97 @@ export async function POST(req: Request) {
     : "";
   const enrichedMsg = localeInstruction + locationContext + lastUserMsg;
 
-  // If we have a sessionId, use the streaming endpoint
-  const targetSessionId = sessionId || "default";
+  const token = req.headers.get("authorization");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: token } : {}),
+  };
 
   try {
-    // Try to create a session if we don't have one
+    // 1. Create or reuse session
     let sid = sessionId;
     if (!sid) {
-      const token = req.headers.get("authorization");
       const sessionRes = await fetch(`${API_BASE}/chat/sessions`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: token } : {}),
-        },
-        body: JSON.stringify({ title: "Web Chat" }),
-        signal: AbortSignal.timeout(5000),
+        headers,
+        body: JSON.stringify({ title: lastUserMsg.slice(0, 80) || "Web Chat" }),
+        signal: AbortSignal.timeout(8000),
       });
       if (sessionRes.ok) {
         const session = await sessionRes.json();
         sid = session.id;
+      } else {
+        console.error("[chat] Session creation failed:", sessionRes.status, await sessionRes.text().catch(() => ""));
       }
     }
 
-    if (sid) {
-      const token = req.headers.get("authorization");
-      const streamRes = await fetch(`${API_BASE}/chat/sessions/${sid}/stream`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: token } : {}),
-        },
-        body: JSON.stringify({ message: enrichedMsg }),
-        signal: AbortSignal.timeout(30000),
+    if (!sid) throw new Error("Could not create chat session");
+
+    // 2. Stream response from backend
+    const streamRes = await fetch(`${API_BASE}/chat/sessions/${sid}/stream`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ message: enrichedMsg }),
+      signal: AbortSignal.timeout(60000),
+    });
+
+    if (streamRes.ok && streamRes.body) {
+      // Inject sessionId into the SSE stream so frontend can reuse it
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const reader = streamRes.body.getReader();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          // Send session ID first
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          controller.close();
+        }
       });
 
-      if (streamRes.ok && streamRes.body) {
-        return new Response(streamRes.body, {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        });
-      }
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
     }
 
-    // Fallback: call the non-streaming message endpoint
-    const token = req.headers.get("authorization");
-    const msgRes = await fetch(`${API_BASE}/chat/sessions/${sid || targetSessionId}/messages`, {
+    // 3. Fallback: non-streaming
+    const msgRes = await fetch(`${API_BASE}/chat/sessions/${sid}/messages`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: token } : {}),
-      },
+      headers,
       body: JSON.stringify({ message: enrichedMsg }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (msgRes.ok) {
       const data = await msgRes.json();
-      return Response.json({ role: "assistant", content: data.response });
+      // Return as SSE-formatted response so the frontend parser works uniformly
+      const ssePayload = [
+        `data: ${JSON.stringify({ sessionId: sid })}\n\n`,
+        `data: ${JSON.stringify({ token: data.response })}\n\n`,
+        `data: ${JSON.stringify({ done: true, content: data.response })}\n\n`,
+      ].join("");
+      return new Response(ssePayload, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+        },
+      });
     }
 
-    throw new Error("Backend unreachable");
+    throw new Error(`Backend error: ${streamRes.status}`);
   } catch (error) {
+    console.error("[chat] Backend error, using smart fallback:", error);
+    
     // Smart fallback: use OpenStreetMap data to respond with real nearby places
     try {
       const smartResponse = await getSmartLocationResponse(
@@ -108,14 +134,14 @@ export async function POST(req: Request) {
         locale || "fa"
       );
       if (smartResponse) {
-        return Response.json({ role: "assistant", content: smartResponse });
+        return Response.json({ role: "assistant", content: smartResponse, fallback: true });
       }
     } catch {
       // If even the smart fallback fails, return error status
     }
 
     return Response.json(
-      { role: "assistant", error: "backend_unavailable" },
+      { role: "assistant", content: "متأسفانه در حال حاضر سرویس هوش مصنوعی در دسترس نیست. لطفاً دقایقی دیگر تلاش کنید.", error: "backend_unavailable" },
       { status: 503 }
     );
   }

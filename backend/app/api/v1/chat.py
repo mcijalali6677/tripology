@@ -30,12 +30,12 @@ router = APIRouter(tags=["AI"])
 @router.post("/chat/sessions", response_model=ChatSessionResponse, status_code=201)
 async def create_chat_session(
     data: ChatSessionCreate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    """Create a new chat session."""
+    """Create a new chat session (works for anonymous users too)."""
     session = ChatSession(
-        user_id=user.id,
+        user_id=user.id if user else None,
         title=data.title,
         context=data.context,
     )
@@ -65,17 +65,17 @@ async def list_chat_sessions(
 async def send_message(
     session_id: UUID,
     data: ChatMessageRequest,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
     """Send a message and get AI response (non-streaming)."""
-    # Verify session ownership
-    result = await db.execute(
-        select(ChatSession).where(
-            ChatSession.id == session_id,
-            ChatSession.user_id == user.id,
-        )
-    )
+    # Verify session exists (and ownership if logged in)
+    query = select(ChatSession).where(ChatSession.id == session_id)
+    if user:
+        query = query.where(ChatSession.user_id == user.id)
+    else:
+        query = query.where(ChatSession.user_id.is_(None))
+    result = await db.execute(query)
     session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Chat session not found")
@@ -98,33 +98,35 @@ async def send_message(
 async def send_message_stream(
     session_id: UUID,
     data: ChatMessageRequest,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
     """Send a message and get AI response (streaming via SSE)."""
-    # Verify session ownership
-    result = await db.execute(
-        select(ChatSession).where(
-            ChatSession.id == session_id,
-            ChatSession.user_id == user.id,
-        )
-    )
+    # Verify session exists (and ownership if logged in)
+    query = select(ChatSession).where(ChatSession.id == session_id)
+    if user:
+        query = query.where(ChatSession.user_id == user.id)
+    else:
+        query = query.where(ChatSession.user_id.is_(None))
+    result = await db.execute(query)
     session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Chat session not found")
     
     async def event_stream():
         try:
+            full_response = ""
             async for token in chat_agent.chat_stream(
                 message=data.message,
                 session_id=session_id,
                 db=db,
                 destination=data.destination,
             ):
-                yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                full_response += token
+                yield f"data: {json.dumps({'token': token})}\n\n"
+            yield f"data: {json.dumps({'done': True, 'content': full_response})}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
     
     return StreamingResponse(
         event_stream(),

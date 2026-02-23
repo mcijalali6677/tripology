@@ -76,20 +76,6 @@ export function AIChatPlanner({
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  const createSession = async () => {
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create-session" })
-      })
-      const data = await res.json()
-      return data.sessionId || `local-${Date.now()}`
-    } catch {
-      return `local-${Date.now()}`
-    }
-  }
-
   const sendMessage = async (content?: string) => {
     const messageContent = content || input.trim()
     if (!messageContent || isLoading) return
@@ -98,10 +84,6 @@ export function AIChatPlanner({
     setIsLoading(true)
 
     let currentSessionId = sessionId
-    if (!currentSessionId) {
-      currentSessionId = await createSession()
-      setSessionId(currentSessionId)
-    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -131,24 +113,59 @@ export function AIChatPlanner({
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!response.ok) {
+        // Try to parse JSON error
+        const errData = await response.json().catch(() => null)
+        throw new Error(errData?.content || errData?.error || "Failed to send message")
+      }
 
+      const contentType = response.headers.get("content-type") || ""
+
+      // Handle JSON response (fallback mode)
+      if (contentType.includes("application/json")) {
+        const data = await response.json()
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessage.id
+              ? {
+                  ...msg,
+                  content: data.content || t("chatPlanner.fallbackHelp"),
+                  isStreaming: false,
+                  suggestions: generateSuggestions(messageContent),
+                }
+              : msg
+          )
+        )
+        return
+      }
+
+      // Handle SSE stream
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
       let fullContent = ""
+      let buffer = ""
 
       if (reader) {
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
 
-          const chunk = decoder.decode(value)
-          const lines = chunk.split("\n")
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split("\n")
+          buffer = lines.pop() || "" // keep incomplete line in buffer
 
           for (const line of lines) {
             if (line.startsWith("data: ")) {
+              const jsonStr = line.slice(6).trim()
+              if (!jsonStr) continue
               try {
-                const data = JSON.parse(line.slice(6))
+                const data = JSON.parse(jsonStr)
+                // Capture sessionId from first event
+                if (data.sessionId && !currentSessionId) {
+                  currentSessionId = data.sessionId
+                  setSessionId(data.sessionId)
+                }
+                // Accumulate tokens
                 if (data.token) {
                   fullContent += data.token
                   setMessages((prev) =>
@@ -159,6 +176,7 @@ export function AIChatPlanner({
                     )
                   )
                 }
+                // Stream complete
                 if (data.done) {
                   setMessages((prev) =>
                     prev.map((msg) =>
@@ -173,37 +191,32 @@ export function AIChatPlanner({
                     )
                   )
                 }
-              } catch {
-                if (line.slice(6).trim()) {
-                  fullContent += line.slice(6)
-                  setMessages((prev) =>
-                    prev.map((msg) =>
-                      msg.id === assistantMessage.id
-                        ? { ...msg, content: fullContent }
-                        : msg
-                    )
-                  )
+                // Handle error from backend
+                if (data.error) {
+                  throw new Error(data.error)
                 }
+              } catch (e) {
+                // If JSON parse fails, treat as plain text token
+                if (jsonStr && !(e instanceof SyntaxError)) throw e
               }
             }
           }
         }
       }
 
-      if (!fullContent) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessage.id
-              ? {
-                  ...msg,
-                  content: t("chatPlanner.fallbackEmpty"),
-                  isStreaming: false,
-                  suggestions: generateSuggestions(messageContent),
-                }
-              : msg
-          )
+      // Finalize: mark streaming done if not already
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessage.id && msg.isStreaming
+            ? {
+                ...msg,
+                content: fullContent || t("chatPlanner.fallbackEmpty"),
+                isStreaming: false,
+                suggestions: fullContent ? generateSuggestions(messageContent) : undefined,
+              }
+            : msg
         )
-      }
+      )
     } catch {
       setMessages((prev) =>
         prev.map((msg) =>
