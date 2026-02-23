@@ -69,28 +69,35 @@ export async function POST(req: Request) {
     });
 
     if (streamRes.ok && streamRes.body) {
-      // Use TransformStream to forward backend SSE data and ensure proper stream closure.
-      // SessionId is sent as a response header to avoid injecting into stream.
+      // Use ReadableStream with immediate data write to force header flush.
+      // Next.js 16 only flushes response headers when the first chunk is enqueued
+      // synchronously in the ReadableStream start() callback.
       const backendReader = streamRes.body.getReader();
-      const { readable, writable } = new TransformStream();
-      const writer = writable.getWriter();
+      const encoder = new TextEncoder();
 
-      // Pipe in detached async so Response starts flowing immediately
-      (async () => {
-        try {
-          while (true) {
-            const { done, value } = await backendReader.read();
-            if (done) break;
-            await writer.write(value);
-          }
-        } catch (e) {
-          console.error("[chat] Stream error:", e);
-        } finally {
-          try { await writer.close(); } catch { /* already closed */ }
-        }
-      })();
+      const stream = new ReadableStream({
+        start(controller) {
+          // Enqueue sessionId immediately (sync) to force header flush
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
 
-      return new Response(readable, {
+          // Pipe backend stream in background
+          (async () => {
+            try {
+              while (true) {
+                const { done, value } = await backendReader.read();
+                if (done) break;
+                controller.enqueue(value);
+              }
+            } catch (e) {
+              console.error("[chat] Stream error:", e);
+            } finally {
+              controller.close();
+            }
+          })();
+        },
+      });
+
+      return new Response(stream, {
         status: 200,
         headers: {
           "Content-Type": "text/event-stream",
