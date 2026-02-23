@@ -703,56 +703,77 @@ export default function CustomTripPage() {
                 className="overflow-hidden"
               >
                 <div className="px-4 pb-4 space-y-4">
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {/* Category Icons — large colorful grid */}
+                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
                     {categories.map(([key, category]) => {
                       const Icon = category.icon
                       const basketCount = manualBasket.filter(item =>
                         category.items.some(catItem => catItem.id === item.id)
                       ).length
+                      const colorMap: Record<CategoryKey, { bg: string; activeBg: string; icon: string; activeIcon: string }> = {
+                        activities:  { bg: "bg-blue-50",   activeBg: "bg-blue-600",   icon: "text-blue-600",    activeIcon: "text-white" },
+                        liveEvents:  { bg: "bg-rose-50",   activeBg: "bg-rose-500",   icon: "text-rose-500",    activeIcon: "text-white" },
+                        restaurants: { bg: "bg-emerald-50", activeBg: "bg-emerald-600", icon: "text-emerald-600", activeIcon: "text-white" },
+                        cafes:       { bg: "bg-orange-50",  activeBg: "bg-orange-500",  icon: "text-orange-500",  activeIcon: "text-white" },
+                        transport:   { bg: "bg-teal-50",    activeBg: "bg-teal-600",    icon: "text-teal-600",    activeIcon: "text-white" },
+                        experiences: { bg: "bg-pink-50",    activeBg: "bg-pink-500",    icon: "text-pink-500",    activeIcon: "text-white" },
+                      }
+                      const colors = colorMap[key] || colorMap.activities
+                      const isActive = selectedCategory === key
                       return (
-                        <Button
+                        <button
                           key={key}
-                          variant={selectedCategory === key ? "default" : "outline"}
-                          size="sm"
-                          className="shrink-0 gap-2 relative"
+                          className="flex flex-col items-center gap-1.5 shrink-0 relative group"
                           onClick={() => setSelectedCategory(key)}
                         >
-                          <Icon className="size-4" />
-                          <span className="hidden sm:inline">{categoryLabelMap[key]}</span>
+                          <div className={cn(
+                            "size-14 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-sm",
+                            isActive ? colors.activeBg + " shadow-md scale-105" : colors.bg + " hover:shadow-md hover:scale-105"
+                          )}>
+                            <Icon className={cn("size-7", isActive ? colors.activeIcon : colors.icon)} />
+                          </div>
+                          <span className={cn(
+                            "text-[10px] font-medium leading-tight text-center max-w-[60px] truncate",
+                            isActive ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {categoryLabelMap[key]}
+                          </span>
                           {basketCount > 0 && (
-                            <span className="absolute -top-1.5 -end-1.5 size-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                            <span className="absolute -top-1 -end-1 size-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
                               {basketCount}
                             </span>
                           )}
-                        </Button>
+                        </button>
                       )
                     })}
                   </div>
 
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
+                  {/* Search + Filter + Star — single row */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 min-w-0">
                       <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                       <Input
                         placeholder={t("customTrip.searchCategory", { category: categoryLabelMap[selectedCategory] })}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="ps-10"
+                        className="ps-10 h-10"
                       />
                     </div>
                     <Button
                       variant={showFilters ? "secondary" : "outline"}
                       size="icon"
+                      className="size-10 shrink-0"
                       onClick={() => setShowFilters(!showFilters)}
                     >
-                      <Filter className="size-4" />
+                      <SlidersHorizontal className="size-4" />
                     </Button>
                     <Button
                       variant={popularOnly ? "default" : "outline"}
-                      size="sm"
+                      size="icon"
+                      className="size-10 shrink-0"
                       onClick={() => setPopularOnly(!popularOnly)}
-                      className="shrink-0 gap-1.5"
                     >
-                      <Star className="size-3.5" />
+                      <Star className={cn("size-4", popularOnly && "fill-current")} />
                     </Button>
                   </div>
 
