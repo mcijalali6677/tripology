@@ -28,7 +28,7 @@ class RAGPipeline:
     6. LLM generates context-aware answer
     """
     
-    def __init__(self, top_k: int = 5, similarity_threshold: float = 0.5):
+    def __init__(self, top_k: int = 3, similarity_threshold: float = 0.5):
         self.top_k = top_k
         self.similarity_threshold = similarity_threshold
     

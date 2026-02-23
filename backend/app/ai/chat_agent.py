@@ -134,9 +134,9 @@ class TravelChatAgent:
         self,
         session_id: UUID,
         db: AsyncSession,
-        max_messages: int = 20,
+        max_messages: int = 10,
     ) -> List[Dict[str, str]]:
-        """Load recent conversation history for context."""
+        """Load recent conversation history for context (limited for context window)."""
         result = await db.execute(
             select(ChatMessage)
             .where(ChatMessage.session_id == session_id)
