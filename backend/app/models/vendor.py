@@ -64,7 +64,7 @@ class Vendor(Base):
     banner_url = Column(String(500), nullable=True)
 
     # Verification & Status
-    status = Column(SQLEnum(VendorStatus), default=VendorStatus.PENDING, nullable=False)
+    status = Column(SQLEnum(VendorStatus), default=VendorStatus.pending, nullable=False)
     verified_at = Column(DateTime, nullable=True)
     rejection_reason = Column(Text, nullable=True)
     admin_notes = Column(Text, nullable=True)
