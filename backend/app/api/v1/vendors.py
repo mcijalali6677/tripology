@@ -52,7 +52,7 @@ async def register_vendor(
         license_number=data.license_number,
         national_id=data.national_id,
         tax_id=data.tax_id,
-        status=VendorStatus.PENDING,
+        status=VendorStatus.pending,
     )
     db.add(vendor)
     await db.commit()
@@ -106,7 +106,7 @@ async def list_approved_vendors(
     db: AsyncSession = Depends(get_db),
 ):
     """List approved vendors (public)."""
-    query = select(Vendor).where(Vendor.status == VendorStatus.APPROVED)
+    query = select(Vendor).where(Vendor.status == VendorStatus.approved)
     if vendor_type:
         query = query.where(Vendor.vendor_type == VendorType(vendor_type))
     if city:
@@ -120,11 +120,11 @@ async def list_approved_vendors(
 async def vendor_stats(db: AsyncSession = Depends(get_db)):
     """Public stats for vendor landing page."""
     total = await db.execute(
-        select(func.count(Vendor.id)).where(Vendor.status == VendorStatus.APPROVED)
+        select(func.count(Vendor.id)).where(Vendor.status == VendorStatus.approved)
     )
     types = await db.execute(
         select(Vendor.vendor_type, func.count(Vendor.id))
-        .where(Vendor.status == VendorStatus.APPROVED)
+        .where(Vendor.status == VendorStatus.approved)
         .group_by(Vendor.vendor_type)
     )
     return {
@@ -178,9 +178,8 @@ async def admin_vendor_action(
         vendor.admin_notes = data.admin_notes
     if data.commission_rate is not None:
         vendor.commission_rate = data.commission_rate
-    if data.status == "approved":
+    if data.status.value == "approved":
         vendor.verified_at = datetime.utcnow()
-        # Optionally update user role
         user_result = await db.execute(select(User).where(User.id == vendor.user_id))
         user = user_result.scalar_one_or_none()
         if user:

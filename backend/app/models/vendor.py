@@ -11,26 +11,26 @@ import enum
 
 
 class VendorType(str, enum.Enum):
-    HOTEL = "hotel"
-    AIRLINE = "airline"
-    TOUR_AGENCY = "tour_agency"
-    CAR_RENTAL = "car_rental"
-    RESTAURANT = "restaurant"
-    HOMESTAY = "homestay"          # خانه‌های اقامتی
-    TRAVEL_INSURANCE = "travel_insurance"
-    VISA_SERVICE = "visa_service"
-    LOCAL_GUIDE = "local_guide"
-    TRANSPORT = "transport"        # اتوبوس، قطار، ...
-    OTHER = "other"
+    hotel = "hotel"
+    airline = "airline"
+    tour_agency = "tour_agency"
+    car_rental = "car_rental"
+    restaurant = "restaurant"
+    homestay = "homestay"
+    travel_insurance = "travel_insurance"
+    visa_service = "visa_service"
+    local_guide = "local_guide"
+    transport = "transport"
+    other = "other"
 
 
 class VendorStatus(str, enum.Enum):
-    PENDING = "pending"           # در انتظار بررسی
-    DOCUMENTS_REQUIRED = "documents_required"  # نیاز به مدارک بیشتر
-    UNDER_REVIEW = "under_review"  # در حال بررسی
-    APPROVED = "approved"         # تایید شده
-    REJECTED = "rejected"         # رد شده
-    SUSPENDED = "suspended"       # تعلیق شده
+    pending = "pending"
+    documents_required = "documents_required"
+    under_review = "under_review"
+    approved = "approved"
+    rejected = "rejected"
+    suspended = "suspended"
 
 
 class Vendor(Base):
