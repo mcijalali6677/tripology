@@ -1203,6 +1203,8 @@ const en = {
     },
     thinking: "Thinking...",
     error: "Sorry, I couldn't process your request. Please try again.",
+    fallback: "I'd love to help you plan your trip! What destination are you thinking about?",
+    errorMsg: "Sorry, I'm having trouble connecting. Please try again.",
   },
 
   // ===== AI CHAT PLANNER (Full Page) =====

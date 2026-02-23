@@ -5,14 +5,30 @@ import type React from "react"
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { MessageCircle, X, Send, Sparkles } from "lucide-react"
+import { MessageCircle, X, Send, Sparkles, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/lib/i18n/context"
+
+/** Lightweight Markdown→HTML for AI responses (bold, italic, lists, headers, emoji) */
+function formatMarkdown(text: string): string {
+  if (!text) return ""
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/^### (.+)$/gm, "<h4 class='font-semibold mt-2 mb-1'>$1</h4>")
+    .replace(/^## (.+)$/gm, "<h3 class='font-semibold text-base mt-2 mb-1'>$1</h3>")
+    .replace(/^# (.+)$/gm, "<h3 class='font-bold text-base mt-2 mb-1'>$1</h3>")
+    .replace(/^[-•] (.+)$/gm, "<li class='ms-4 list-disc'>$1</li>")
+    .replace(/^(\d+)\. (.+)$/gm, "<li class='ms-4 list-decimal'>$1. $2</li>")
+    .replace(/\n/g, "<br/>")
+}
 
 interface Message {
   id: string
   role: "user" | "assistant"
   content: string
+  isStreaming?: boolean
 }
 
 interface AIAssistantChatProps {
@@ -24,6 +40,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { t, locale } = useI18n()
 
@@ -34,6 +51,12 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  const resetChat = () => {
+    setMessages([])
+    setSessionId(null)
+    setInput("")
+  }
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return
@@ -47,47 +70,69 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
     setInput("")
     setIsLoading(true)
 
-    // Add a placeholder assistant message for streaming
     const assistantId = (Date.now() + 1).toString()
-    setMessages(prev => [...prev, { id: assistantId, role: "assistant", content: "" }])
+    setMessages(prev => [...prev, { id: assistantId, role: "assistant", content: "", isStreaming: true }])
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
+          message: text.trim(),
+          sessionId,
           locale: locale,
         }),
       })
 
       const contentType = response.headers.get("content-type") || ""
 
+      // Capture sessionId from header
+      const headerSessionId = response.headers.get("x-session-id")
+      if (headerSessionId && !sessionId) {
+        setSessionId(headerSessionId)
+      }
+
       if (contentType.includes("text/event-stream") && response.body) {
-        // Handle SSE streaming
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
         let fullContent = ""
+        let buffer = ""
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
 
-          const chunk = decoder.decode(value)
-          const lines = chunk.split("\n")
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split("\n")
+          buffer = lines.pop() || ""
+
           for (const line of lines) {
             if (line.startsWith("data: ")) {
+              const jsonStr = line.slice(6).trim()
+              if (!jsonStr) continue
               try {
-                const data = JSON.parse(line.slice(6))
-                if (data.type === "token") {
-                  fullContent += data.content
+                const data = JSON.parse(jsonStr)
+                // Capture sessionId from SSE event
+                if (data.sessionId && !sessionId) {
+                  setSessionId(data.sessionId)
+                }
+                // Handle token (backend sends {token: "..."})
+                if (data.token) {
+                  fullContent += data.token
                   setMessages(prev =>
                     prev.map(m => (m.id === assistantId ? { ...m, content: fullContent } : m))
                   )
                 }
+                // Stream complete
+                if (data.done) {
+                  setMessages(prev =>
+                    prev.map(m => (m.id === assistantId
+                      ? { ...m, content: fullContent || data.content || t("aiAssistant.fallback"), isStreaming: false }
+                      : m))
+                  )
+                }
+                // Skip heartbeats
+                if (data.heartbeat || data.status === "thinking") continue
               } catch {
                 // ignore parse errors for partial chunks
               }
@@ -95,21 +140,19 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
           }
         }
 
-        if (!fullContent) {
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === assistantId
-                ? { ...m, content: "I'm here to help! Ask me about travel destinations, itineraries, or your trip preferences." }
-                : m
-            )
-          )
-        }
-      } else {
-        // Handle JSON response
-        const data = await response.json()
-        const content = data.content || data.response || "I'm here to help with your travel plans!"
+        // Finalize
         setMessages(prev =>
-          prev.map(m => (m.id === assistantId ? { ...m, content } : m))
+          prev.map(m =>
+            m.id === assistantId && m.isStreaming
+              ? { ...m, content: fullContent || t("aiAssistant.fallback"), isStreaming: false }
+              : m
+          )
+        )
+      } else {
+        const data = await response.json()
+        const content = data.content || data.response || t("aiAssistant.fallback")
+        setMessages(prev =>
+          prev.map(m => (m.id === assistantId ? { ...m, content, isStreaming: false } : m))
         )
       }
     } catch (error) {
@@ -117,7 +160,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
       setMessages(prev =>
         prev.map(m =>
           m.id === assistantId
-            ? { ...m, content: "Sorry, I'm having trouble connecting. Please make sure the backend server is running." }
+            ? { ...m, content: t("aiAssistant.errorMsg"), isStreaming: false }
             : m
         )
       )
@@ -152,17 +195,34 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
               <Sparkles className="h-5 w-5" />
               <div>
                 <h3 className="font-semibold">{t("aiAssistant.title")}</h3>
-                <p className="text-xs text-white/80">{t("aiAssistant.subtitle")}</p>
+                <div className="flex items-center gap-1.5">
+                  <div className={cn("size-1.5 rounded-full", isLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400")} />
+                  <p className="text-xs text-white/80">
+                    {isLoading ? t("aiAssistant.thinking") : t("aiAssistant.subtitle")}
+                  </p>
+                </div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:bg-white/20"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={resetChat}
+                  className="text-white hover:bg-white/20 h-8 w-8"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="text-white hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -204,7 +264,12 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
                     message.role === "user" ? "bg-forest text-white" : "bg-white text-gray-900 shadow-sm",
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
+                  />
+                  {message.isStreaming && (
+                    <span className="inline-block w-1.5 h-4 bg-forest/50 animate-pulse ms-0.5 rounded-sm" />
+                  )}
                 </div>
               </div>
             ))}

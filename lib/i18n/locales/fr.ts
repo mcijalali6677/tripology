@@ -1127,6 +1127,8 @@ const fr = {
     },
     thinking: "Réflexion en cours...",
     error: "Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.",
+    fallback: "Je serais ravi de vous aider à planifier votre voyage ! Quelle destination envisagez-vous ?",
+    errorMsg: "Désolé, j'ai des problèmes de connexion. Veuillez réessayer.",
   },
 
   // ===== AI CHAT PLANNER (Full Page) =====

@@ -8,7 +8,7 @@ import { getSmartLocationResponse } from "./location-ai"
 // Use internal URL for server-side requests to avoid double-proxying through Nginx
 const API_BASE = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
-export const maxDuration = 180;
+export const maxDuration = 600;
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -39,6 +39,9 @@ export async function POST(req: Request) {
   const token = req.headers.get("authorization");
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    // Critical for SSE streaming: Node/undici will transparently decompress gzip,
+    // which can buffer and prevent incremental SSE delivery.
+    "Accept-Encoding": "identity",
     ...(token ? { Authorization: token } : {}),
   };
 
@@ -65,7 +68,8 @@ export async function POST(req: Request) {
       method: "POST",
       headers,
       body: JSON.stringify({ message: enrichedMsg }),
-      signal: AbortSignal.timeout(180000),
+      // CPU-only models can take several minutes; avoid truncating SSE mid-response.
+      signal: AbortSignal.timeout(600000),
     });
 
     if (streamRes.ok && streamRes.body) {

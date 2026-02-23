@@ -1,4 +1,6 @@
 """AI Chat & Generation endpoints."""
+import asyncio
+import contextlib
 import json
 from uuid import UUID
 from typing import Optional
@@ -120,14 +122,37 @@ async def send_message_stream(
             yield f"data: {json.dumps({'status': 'thinking'})}\n\n"
 
             full_response = ""
-            async for token in chat_agent.chat_stream(
+            token_stream = chat_agent.chat_stream(
                 message=data.message,
                 session_id=session_id,
                 db=db,
                 destination=data.destination,
-            ):
-                full_response += token
-                yield f"data: {json.dumps({'token': token})}\n\n"
+            )
+
+            # Emit lightweight heartbeats while waiting for tokens.
+            # This avoids long silent gaps (common on CPU-only models) that can trigger
+            # proxy/client buffering or timeouts.
+            next_token_task = asyncio.create_task(token_stream.__anext__())
+            try:
+                while True:
+                    done, _pending = await asyncio.wait({next_token_task}, timeout=5.0)
+                    if not done:
+                        yield f"data: {json.dumps({'status': 'thinking', 'heartbeat': True})}\n\n"
+                        continue
+
+                    try:
+                        token = next_token_task.result()
+                    except StopAsyncIteration:
+                        break
+
+                    full_response += token
+                    yield f"data: {json.dumps({'token': token})}\n\n"
+                    next_token_task = asyncio.create_task(token_stream.__anext__())
+            finally:
+                if next_token_task and not next_token_task.done():
+                    next_token_task.cancel()
+                    with contextlib.suppress(Exception):
+                        await next_token_task
             yield f"data: {json.dumps({'done': True, 'content': full_response})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -139,6 +164,8 @@ async def send_message_stream(
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
+            # Avoid gzip buffering which breaks incremental SSE delivery.
+            "Content-Encoding": "identity",
         },
     )
 

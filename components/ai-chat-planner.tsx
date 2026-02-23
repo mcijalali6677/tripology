@@ -11,6 +11,21 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/lib/i18n/context"
 
+/** Lightweight Markdown→HTML for AI responses */
+function formatMarkdown(text: string): string {
+  if (!text) return ""
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/^### (.+)$/gm, "<h4 class='font-semibold mt-2 mb-1'>$1</h4>")
+    .replace(/^## (.+)$/gm, "<h3 class='font-semibold text-base mt-3 mb-1'>$1</h3>")
+    .replace(/^# (.+)$/gm, "<h3 class='font-bold text-base mt-3 mb-1'>$1</h3>")
+    .replace(/^[-•] (.+)$/gm, "<li class='ms-4 list-disc'>$1</li>")
+    .replace(/^(\d+)\. (.+)$/gm, "<li class='ms-4 list-decimal'>$1. $2</li>")
+    .replace(/\n/g, "<br/>")
+}
+
 interface Message {
   id: string
   role: "user" | "assistant"
@@ -400,7 +415,10 @@ export function AIChatPlanner({
                         : "bg-secondary/50 text-foreground rounded-tl-sm"
                     )}
                   >
-                    {message.content}
+                    <div
+                      className="prose prose-sm max-w-none [&_strong]:font-semibold [&_li]:my-0.5"
+                      dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
+                    />
                     {message.isStreaming && (
                       <span className="inline-block w-1.5 h-4 bg-forest/50 animate-pulse ms-0.5 rounded-sm" />
                     )}
