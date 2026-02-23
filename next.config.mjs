@@ -11,6 +11,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'tripology7.shop',
+      },
     ],
   },
   // Allow access from any host (needed for LAN/mobile access)

@@ -70,7 +70,8 @@ export default function CheckoutPage() {
       try {
         const res = await fetch("/api/itineraries")
         const data = await res.json()
-        const found = data.find((it: Itinerary) => it.id === planId)
+        const items = Array.isArray(data) ? data : []
+        const found = items.find((it: Itinerary) => it.id === planId)
         if (found) setItinerary(found)
       } catch { /* fallback */ }
       finally { setLoading(false) }

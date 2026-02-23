@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     SECRET_KEY: str = "change-me-in-production"
-    ALLOWED_ORIGINS: str = "http://localhost:3000"
+    ALLOWED_ORIGINS: str = "https://tripology7.shop,http://localhost:3000"
     
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://tripology:tripology_pass@localhost:5432/tripology_db"

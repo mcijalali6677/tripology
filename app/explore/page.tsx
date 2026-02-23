@@ -92,7 +92,7 @@ export default function ExplorePage() {
   useEffect(() => {
     fetch("/api/itineraries")
       .then(res => res.json())
-      .then(data => setAllItineraries(data))
+      .then(data => setAllItineraries(Array.isArray(data) ? data : []))
       .catch(() => setAllItineraries([]))
   }, [])
 

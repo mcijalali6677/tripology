@@ -38,7 +38,7 @@ export default function MarketplacePage() {
   useEffect(() => {
     fetch(`/api/itineraries?locale=${locale}`)
       .then(res => res.json())
-      .then(data => setAllItineraries(data))
+      .then(data => setAllItineraries(Array.isArray(data) ? data : []))
       .catch(() => setAllItineraries([]))
   }, [locale])
 

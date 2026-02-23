@@ -13,10 +13,15 @@ function getApiBase(): string {
   // 2. In browser: use same hostname as the page (works for both localhost & LAN IP)
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    return `http://${host}:8001/api/v1`;
+    const proto = window.location.protocol;
+    // Production: no port needed (Nginx proxies), Dev: use port 8001
+    if (host === "localhost" || host === "127.0.0.1") {
+      return `${proto}//${host}:8001/api/v1`;
+    }
+    return `${proto}//${host}/api/v1`;
   }
   // 3. Server-side fallback
-  return "http://localhost:8001/api/v1";
+  return "https://tripology7.shop/api/v1";
 }
 
 const API_BASE = getApiBase();

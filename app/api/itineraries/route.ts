@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import type { ItineraryListItem } from "@/lib/types"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api/v1"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://tripology7.shop/api/v1"
 
 const IRAN_CODES = ["IR"]
 

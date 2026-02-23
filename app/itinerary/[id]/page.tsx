@@ -1,8 +1,8 @@
 import ItineraryDetailPageClient from "./client"
 import RawTripDetailClient from "./raw-trip-client"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://tripology7.shop"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://tripology7.shop/api/v1"
 
 export async function generateStaticParams() {
   try {

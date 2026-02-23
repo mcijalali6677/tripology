@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Playfair_Display, Vazirmatn } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { RootLayoutWrapper } from "@/components/root-layout-wrapper"
 import { BottomNav } from "@/components/bottom-nav"
 import "./globals.css"
@@ -67,7 +66,6 @@ export default function RootLayout({
           {children}
           <BottomNav />
         </RootLayoutWrapper>
-        <Analytics />
       </body>
     </html>
   )
