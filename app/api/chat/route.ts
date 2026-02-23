@@ -71,36 +71,36 @@ export async function POST(req: Request) {
     });
 
     if (streamRes.ok && streamRes.body) {
-      // Inject sessionId into the SSE stream so frontend can reuse it
+      // Inject sessionId into the SSE stream and forward the backend stream
       const encoder = new TextEncoder();
-      const reader = streamRes.body.getReader();
+      const backendReader = streamRes.body.getReader();
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
 
-      const stream = new ReadableStream({
-        start(controller) {
-          // Send session ID first — enqueue synchronously so headers flush immediately
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
-          // Pipe upstream chunks asynchronously without blocking start()
-          (async () => {
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                controller.enqueue(value);
-              }
-            } catch (e) {
-              controller.error(e);
-            } finally {
-              controller.close();
-            }
-          })();
+      // Pipe data in a detached async context so the Response starts flowing immediately
+      (async () => {
+        try {
+          // Send session ID as the first SSE event
+          await writer.write(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
+          // Forward all chunks from the backend stream
+          while (true) {
+            const { done, value } = await backendReader.read();
+            if (done) break;
+            await writer.write(value);
+          }
+        } catch {
+          // Stream interrupted
+        } finally {
+          try { await writer.close(); } catch { /* already closed */ }
         }
-      });
+      })();
 
-      return new Response(stream, {
+      return new Response(readable, {
         headers: {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
           Connection: "keep-alive",
+          "X-Accel-Buffering": "no",
         },
       });
     }
