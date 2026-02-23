@@ -5,9 +5,10 @@
 
 import { getSmartLocationResponse } from "./location-ai"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://tripology7.shop/api/v1";
+// Use internal URL for server-side requests to avoid double-proxying through Nginx
+const API_BASE = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers,
       body: JSON.stringify({ message: enrichedMsg }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(180000),
     });
 
     if (streamRes.ok && streamRes.body) {
