@@ -69,9 +69,28 @@ export async function POST(req: Request) {
     });
 
     if (streamRes.ok && streamRes.body) {
-      // Pass backend SSE stream directly to the client (no intermediate buffering).
-      // SessionId is sent as a response header to avoid needing a TransformStream.
-      return new Response(streamRes.body, {
+      // Use TransformStream to forward backend SSE data and ensure proper stream closure.
+      // SessionId is sent as a response header to avoid injecting into stream.
+      const backendReader = streamRes.body.getReader();
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+
+      // Pipe in detached async so Response starts flowing immediately
+      (async () => {
+        try {
+          while (true) {
+            const { done, value } = await backendReader.read();
+            if (done) break;
+            await writer.write(value);
+          }
+        } catch (e) {
+          console.error("[chat] Stream error:", e);
+        } finally {
+          try { await writer.close(); } catch { /* already closed */ }
+        }
+      })();
+
+      return new Response(readable, {
         status: 200,
         headers: {
           "Content-Type": "text/event-stream",
