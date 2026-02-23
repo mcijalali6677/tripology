@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Search, Menu, User, Heart, Sparkles, Compass, Upload, Navigation, LogOut } from "lucide-react"
+import { Search, Menu, User, Heart, Sparkles, Compass, Upload, Navigation, LogOut, Shield } from "lucide-react"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/auth-context"
@@ -81,10 +81,20 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
               </Button>
             </Link>
             {isAuthenticated ? (
-              <Button size="sm" variant="ghost" className="hidden md:flex lg:h-10 lg:text-sm" onClick={logout}>
-                <LogOut className="size-4 me-1" />
-                {t("common.signOut")}
-              </Button>
+              <>
+                {user?.role === "admin" && (
+                  <Link href="/admin">
+                    <Button size="sm" variant="ghost" className="hidden md:flex lg:h-10 lg:text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                      <Shield className="size-4 me-1" />
+                      {t("admin.nav.panel")}
+                    </Button>
+                  </Link>
+                )}
+                <Button size="sm" variant="ghost" className="hidden md:flex lg:h-10 lg:text-sm" onClick={logout}>
+                  <LogOut className="size-4 me-1" />
+                  {t("common.signOut")}
+                </Button>
+              </>
             ) : (
               <Link href="/login">
                 <Button size="sm" className="hidden md:flex lg:h-10 lg:px-6 lg:text-sm">
@@ -163,10 +173,20 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
                   </div>
                   <div className="flex flex-col gap-3">
                     {isAuthenticated ? (
-                      <Button variant="outline" className="w-full bg-transparent" onClick={() => { logout(); setMobileMenuOpen(false); }}>
-                        <LogOut className="size-4 me-2" />
-                        {t("common.signOut")}
-                      </Button>
+                      <>
+                        {user?.role === "admin" && (
+                          <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                            <Button variant="outline" className="w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                              <Shield className="size-4 me-2" />
+                              {t("admin.nav.panel")}
+                            </Button>
+                          </Link>
+                        )}
+                        <Button variant="outline" className="w-full bg-transparent" onClick={() => { logout(); setMobileMenuOpen(false); }}>
+                          <LogOut className="size-4 me-2" />
+                          {t("common.signOut")}
+                        </Button>
+                      </>
                     ) : (
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="outline" className="w-full bg-transparent">

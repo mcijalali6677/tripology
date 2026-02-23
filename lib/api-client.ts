@@ -671,3 +671,209 @@ export interface CreateItineraryData {
     }[];
   }[];
 }
+
+// ===== Admin API =====
+
+export interface AdminDashboardStats {
+  total_users: number;
+  total_itineraries: number;
+  total_bookings: number;
+  total_revenue: number;
+  active_users: number;
+  published_itineraries: number;
+  pending_reviews: number;
+  new_users_today: number;
+  new_users_this_week: number;
+  new_users_this_month: number;
+  bookings_this_month: number;
+  revenue_this_month: number;
+}
+
+export interface AdminRecentActivity {
+  id: string;
+  type: string;
+  description: string;
+  user: string | null;
+  timestamp: string;
+}
+
+export interface AdminMonthlyStats {
+  month: string;
+  users: number;
+  itineraries: number;
+  bookings: number;
+  revenue: number;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  username: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string;
+  is_active: boolean;
+  is_verified: boolean;
+  country: string | null;
+  travel_styles: string[];
+  trips_shared: number;
+  created_at: string;
+}
+
+export interface PaginatedUsers {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface AdminItinerary {
+  id: string;
+  title: string;
+  destination: string;
+  country: string;
+  duration: number;
+  price: number;
+  plan_type: string;
+  is_published: boolean;
+  is_verified: boolean;
+  rating: number;
+  review_count: number;
+  views_count: number;
+  purchases_count: number;
+  creator_username: string | null;
+  created_at: string;
+}
+
+export interface PaginatedItineraries {
+  itineraries: AdminItinerary[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface AdminBooking {
+  id: string;
+  user_email: string;
+  itinerary_title: string;
+  status: string;
+  amount: number;
+  currency: string;
+  payment_method: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface PaginatedBookings {
+  bookings: AdminBooking[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export interface AdminReview {
+  id: string;
+  user_email: string;
+  itinerary_title: string;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  is_verified: boolean;
+  helpful_count: number;
+  created_at: string;
+}
+
+export interface PaginatedReviews {
+  reviews: AdminReview[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+export const adminApi = {
+  // Dashboard
+  getDashboardStats: () =>
+    apiFetch<AdminDashboardStats>("/admin/dashboard", {}, true),
+
+  getRecentActivity: (limit = 10) =>
+    apiFetch<AdminRecentActivity[]>(`/admin/dashboard/recent-activity?limit=${limit}`, {}, true),
+
+  getMonthlyStats: (months = 12) =>
+    apiFetch<AdminMonthlyStats[]>(`/admin/dashboard/monthly-stats?months=${months}`, {}, true),
+
+  // Users
+  listUsers: (params?: { page?: number; per_page?: number; search?: string; role?: string; is_active?: boolean }) => {
+    const sp = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) sp.set(k, String(v));
+      });
+    }
+    const q = sp.toString();
+    return apiFetch<PaginatedUsers>(`/admin/users${q ? `?${q}` : ""}`, {}, true);
+  },
+
+  updateUser: (userId: string, data: { role?: string; is_active?: boolean; is_verified?: boolean; full_name?: string }) =>
+    apiFetch<AdminUser>(`/admin/users/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, true),
+
+  deleteUser: (userId: string) =>
+    apiFetch<void>(`/admin/users/${userId}`, { method: "DELETE" }, true),
+
+  // Itineraries
+  listItineraries: (params?: { page?: number; per_page?: number; search?: string; is_published?: boolean; is_verified?: boolean }) => {
+    const sp = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) sp.set(k, String(v));
+      });
+    }
+    const q = sp.toString();
+    return apiFetch<PaginatedItineraries>(`/admin/itineraries${q ? `?${q}` : ""}`, {}, true);
+  },
+
+  updateItinerary: (id: string, data: { is_published?: boolean; is_verified?: boolean; is_premium?: boolean }) =>
+    apiFetch<AdminItinerary>(`/admin/itineraries/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, true),
+
+  deleteItinerary: (id: string) =>
+    apiFetch<void>(`/admin/itineraries/${id}`, { method: "DELETE" }, true),
+
+  // Bookings
+  listBookings: (params?: { page?: number; per_page?: number; status?: string }) => {
+    const sp = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) sp.set(k, String(v));
+      });
+    }
+    const q = sp.toString();
+    return apiFetch<PaginatedBookings>(`/admin/bookings${q ? `?${q}` : ""}`, {}, true);
+  },
+
+  // Reviews
+  listReviews: (params?: { page?: number; per_page?: number; is_verified?: boolean }) => {
+    const sp = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) sp.set(k, String(v));
+      });
+    }
+    const q = sp.toString();
+    return apiFetch<PaginatedReviews>(`/admin/reviews${q ? `?${q}` : ""}`, {}, true);
+  },
+
+  verifyReview: (reviewId: string) =>
+    apiFetch<{ verified: boolean }>(`/admin/reviews/${reviewId}/verify`, { method: "PATCH" }, true),
+
+  deleteReview: (reviewId: string) =>
+    apiFetch<void>(`/admin/reviews/${reviewId}`, { method: "DELETE" }, true),
+};
