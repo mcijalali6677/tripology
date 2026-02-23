@@ -407,6 +407,9 @@ const fr = {
     orDivider: "OU",
     pickMyselfTitle: "Je choisis moi-même",
     pickMyselfDesc: "Parcourez les activités et ajoutez-les à votre panier",
+    stepBrowse: "Parcourir et choisir",
+    stepReview: "Vérifier le panier",
+    stepBuild: "Créer le voyage",
     categories: {
       activities: "Activités",
       liveEvents: "Événements",

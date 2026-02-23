@@ -412,6 +412,9 @@ const en = {
     orDivider: "OR",
     pickMyselfTitle: "I will Pick Myself",
     pickMyselfDesc: "Browse activities and add them to your basket",
+    stepBrowse: "Browse & pick",
+    stepReview: "Review basket",
+    stepBuild: "Build trip",
     categories: {
       activities: "Activities",
       liveEvents: "Live Events",

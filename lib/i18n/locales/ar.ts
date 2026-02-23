@@ -407,6 +407,9 @@ const ar = {
     orDivider: "أو",
     pickMyselfTitle: "سأختار بنفسي",
     pickMyselfDesc: "تصفح الأنشطة وأضفها إلى سلتك",
+    stepBrowse: "تصفح واختر",
+    stepReview: "مراجعة السلة",
+    stepBuild: "بناء الرحلة",
     categories: {
       activities: "أنشطة",
       liveEvents: "فعاليات حية",

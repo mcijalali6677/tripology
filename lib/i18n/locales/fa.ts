@@ -411,6 +411,9 @@ const fa = {
     orDivider: "یا",
     pickMyselfTitle: "خودم انتخاب می‌کنم",
     pickMyselfDesc: "فعالیت‌ها را مرور کنید و به سبدتان اضافه کنید",
+    stepBrowse: "مرور و انتخاب",
+    stepReview: "بررسی سبد",
+    stepBuild: "ساخت سفر",
     categories: {
       activities: "فعالیت‌ها",
       liveEvents: "رویدادهای زنده",

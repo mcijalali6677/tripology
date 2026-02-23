@@ -702,7 +702,132 @@ export default function CustomTripPage() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="px-4 pb-4 space-y-4">
+                <div className="px-4 pb-4 space-y-5">
+
+                  {/* Step Indicator */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-5 rounded-full bg-forest text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                      <span className="font-medium text-foreground">{t("customTrip.stepBrowse") || "Browse & pick"}</span>
+                    </span>
+                    <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">2</span>
+                      <span>{t("customTrip.stepReview") || "Review basket"}</span>
+                    </span>
+                    <ChevronDown className="size-3 -rotate-90 rtl:rotate-90" />
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center">3</span>
+                      <span>{t("customTrip.stepBuild") || "Build trip"}</span>
+                    </span>
+                  </div>
+
+                  {/* Settings inside this section */}
+                  <div className="rounded-xl border bg-secondary/20 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors"
+                      onClick={() => setShowSettings(!showSettings)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <SlidersHorizontal className="size-4 text-muted-foreground" />
+                        <span className="font-semibold text-sm">{t("customTrip.tripSettings")}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">{t("customTrip.edit")}</span>
+                        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", showSettings && "rotate-180")} />
+                      </div>
+                    </button>
+
+                    {/* Settings summary (collapsed) */}
+                    {!showSettings && (
+                      <div className="px-4 pb-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                            <MapPin className="size-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm">{destination}</span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                            <CalendarDays className="size-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm">{tripDays} {t("common.days")}</span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                            <Users className="size-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm">{travelers} {t("common.people")}</span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                            <Wallet className="size-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm">{budget === "budget" ? t("customTrip.budgetLabel") : budget === "mid" ? t("customTrip.midRange") : t("customTrip.luxury")}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5">
+                          <HelpCircle className="size-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm text-muted-foreground">{t("customTrip.accommodationTBD")}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Settings edit (expanded) */}
+                    <AnimatePresence>
+                      {showSettings && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
+                              <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2.5 border">
+                                <MapPin className="size-4 text-forest" />
+                                <span className="font-medium text-sm">{destination}</span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
+                                <span className="w-8 text-center font-medium">{travelers}</span>
+                                <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
+                              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
+                              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9" />
+                            </div>
+                            <div className="col-span-2 space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">{t("customTrip.budget")}</Label>
+                              <div className="flex gap-2">
+                                {(["budget", "mid", "luxury"] as const).map(val => {
+                                  const labels: Record<string, string> = {
+                                    budget: t("customTrip.budgetLabel"),
+                                    mid: t("customTrip.midRange"),
+                                    luxury: t("customTrip.luxury"),
+                                  }
+                                  return (
+                                    <Button
+                                      key={val}
+                                      variant={budget === val ? "default" : "outline"}
+                                      className="flex-1 h-9 text-sm"
+                                      onClick={() => setBudget(val)}
+                                    >
+                                      {labels[val]}
+                                    </Button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   {/* Category Icons — large colorful grid */}
                   <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
                     {categories.map(([key, category]) => {
@@ -748,7 +873,7 @@ export default function CustomTripPage() {
                     })}
                   </div>
 
-                  {/* Search + Filter + Star — single row */}
+                  {/* Search + Filter + Popular — single row */}
                   <div className="flex items-center gap-2">
                     <div className="relative flex-1 min-w-0">
                       <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -769,14 +894,16 @@ export default function CustomTripPage() {
                     </Button>
                     <Button
                       variant={popularOnly ? "default" : "outline"}
-                      size="icon"
-                      className="size-10 shrink-0"
+                      size="sm"
+                      className="h-10 shrink-0 gap-1.5 px-3"
                       onClick={() => setPopularOnly(!popularOnly)}
                     >
                       <Star className={cn("size-4", popularOnly && "fill-current")} />
+                      <span className="text-xs">{t("customTrip.popular")}</span>
                     </Button>
                   </div>
 
+                  {/* Price Filters */}
                   {showFilters && (
                     <div className="flex flex-wrap items-center gap-2 bg-secondary/20 rounded-lg p-3">
                       <span className="text-xs text-muted-foreground me-1">{t("customTrip.price")}:</span>
@@ -800,186 +927,111 @@ export default function CustomTripPage() {
                     </div>
                   )}
 
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                  {/* Category Title + Count */}
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const Icon = currentCategory.icon
+                      const colorMap: Record<CategoryKey, string> = {
+                        activities: "bg-blue-600", liveEvents: "bg-rose-500",
+                        restaurants: "bg-emerald-600", cafes: "bg-orange-500",
+                        transport: "bg-teal-600", experiences: "bg-pink-500",
+                      }
+                      return (
+                        <div className={cn("size-9 rounded-xl flex items-center justify-center", colorMap[selectedCategory])}>
+                          <Icon className="size-5 text-white" />
+                        </div>
+                      )
+                    })()}
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg">{categoryLabelMap[selectedCategory]}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {t("customTrip.optionsAvailable", { count: String(filteredItems.length) })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Activity Cards — horizontal scroll */}
+                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
                     {filteredItems.map(item => (
                       <div
                         key={item.id}
                         className={cn(
-                          "flex gap-3 p-3 rounded-xl border transition-all hover:shadow-md",
-                          isInManualBasket(item.id) ? "ring-2 ring-forest bg-forest/5" : "bg-card"
+                          "relative shrink-0 w-[240px] sm:w-[280px] rounded-xl overflow-hidden border transition-all hover:shadow-lg group",
+                          isInManualBasket(item.id) ? "ring-2 ring-forest" : ""
                         )}
                       >
-                        <div className="relative size-20 rounded-lg overflow-hidden shrink-0">
+                        {/* Image */}
+                        <div className="relative h-[180px] sm:h-[200px]">
                           <Image
                             src={item.image || "/paris-eiffel-tower-sunset.jpg"}
                             alt={item.title}
                             fill
-                            sizes="80px"
+                            sizes="280px"
                             className="object-cover"
                           />
+                          {/* MUST DO / Free badge */}
                           {item.popular && (
-                            <Badge className="absolute top-1 start-1 bg-red-600 text-white text-[8px] px-1 py-0">
+                            <Badge className="absolute top-2.5 start-2.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
                               {t("customTrip.mustDo")}
                             </Badge>
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-medium text-sm line-clamp-1">{item.title}</h3>
-                            <Button
-                              size="sm"
-                              variant={isInManualBasket(item.id) ? "outline" : "default"}
-                              className={cn(
-                                "h-7 text-[10px] shrink-0",
-                                isInManualBasket(item.id) ? "border-green-300 bg-green-50 text-green-700" : "bg-forest hover:bg-forest/90"
-                              )}
-                              onClick={() => toggleManualBasket(item as Item)}
-                            >
-                              {isInManualBasket(item.id) ? (
-                                <><Check className="size-3 me-1" /> {t("chatPlanner.added") || "Added"}</>
-                              ) : (
-                                <><Plus className="size-3 me-1" /> {t("chatPlanner.addToBasket") || "Add"}</>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{item.description}</p>
-                          <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-0.5"><Clock className="size-2.5" />{item.duration}</span>
-                            <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating}</span>
-                            <span className="font-semibold text-forest">
+                          {item.cost === 0 && !item.popular && (
+                            <Badge className="absolute top-2.5 start-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 shadow-md">
+                              {t("customTrip.free")}
+                            </Badge>
+                          )}
+                          {/* + button overlay */}
+                          <button
+                            onClick={() => toggleManualBasket(item as Item)}
+                            className={cn(
+                              "absolute top-2.5 end-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all",
+                              isInManualBasket(item.id)
+                                ? "bg-forest text-white"
+                                : "bg-white/80 backdrop-blur text-foreground hover:bg-white"
+                            )}
+                          >
+                            {isInManualBasket(item.id) ? <Check className="size-5" /> : <Plus className="size-5" />}
+                          </button>
+                          {/* Price at bottom-right */}
+                          <div className="absolute bottom-2.5 end-2.5 bg-white/90 backdrop-blur rounded-lg px-2.5 py-1 shadow-sm">
+                            <span className="font-bold text-sm">
                               {item.cost === 0 ? t("customTrip.free") : "$" + item.cost}
                             </span>
+                          </div>
+                        </div>
+                        {/* Card info */}
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{item.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-0.5"><Clock className="size-2.5" />{item.duration}</span>
+                            <span className="flex items-center gap-0.5"><Star className="size-2.5 fill-amber-400 text-amber-400" />{item.rating}</span>
+                            <span className="text-muted-foreground">({item.reviews})</span>
                           </div>
                         </div>
                       </div>
                     ))}
                     {filteredItems.length === 0 && (
-                      <p className="text-center text-sm text-muted-foreground py-6">{t("customTrip.noResults")}</p>
+                      <p className="text-center text-sm text-muted-foreground py-6 w-full">{t("customTrip.noResults")}</p>
                     )}
                   </div>
+
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-
-        {/* SECTION 3: Settings */}
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <button
-            className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="size-4 text-muted-foreground" />
-              <span className="font-semibold text-sm">{t("customTrip.tripSettings")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">{t("customTrip.edit")}</span>
-              <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", showSettings && "rotate-180")} />
-            </div>
-          </button>
-
-          {!showSettings && (
-            <div className="px-4 pb-3 flex flex-wrap gap-2">
-              <Badge variant="secondary" className="gap-1.5 text-[10px]">
-                <MapPin className="size-3" />{destination}
-              </Badge>
-              <Badge variant="outline" className="gap-1.5 text-[10px]">
-                <CalendarDays className="size-3" />{formatDate(startDate)} - {formatDate(endDate)} ({tripDays} days)
-              </Badge>
-              <Badge variant="outline" className="gap-1.5 text-[10px]">
-                <Users className="size-3" />{travelers}
-              </Badge>
-              <Badge variant="outline" className="gap-1.5 text-[10px]">
-                <Wallet className="size-3" />
-                {budget === "budget" ? t("customTrip.budgetLabel") : budget === "mid" ? t("customTrip.midRange") : t("customTrip.luxury")}
-              </Badge>
-            </div>
-          )}
-
-          <AnimatePresence>
-            {showSettings && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-2 gap-4 p-4 border-t">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t("customTrip.destination")}</Label>
-                    <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2.5">
-                      <MapPin className="size-4 text-forest" />
-                      <span className="font-medium text-sm">{destination}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t("customTrip.travelers")}</Label>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.max(1, travelers - 1))}>-</Button>
-                      <span className="w-8 text-center font-medium">{travelers}</span>
-                      <Button variant="outline" size="icon" className="size-9" onClick={() => setTravelers(Math.min(10, travelers + 1))}>+</Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
-                    <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
-                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9" />
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label className="text-xs text-muted-foreground">{t("customTrip.budget")}</Label>
-                    <div className="flex gap-2">
-                      {(["budget", "mid", "luxury"] as const).map(val => {
-                        const labels: Record<string, string> = {
-                          budget: t("customTrip.budgetLabel"),
-                          mid: t("customTrip.midRange"),
-                          luxury: t("customTrip.luxury"),
-                        }
-                        return (
-                          <Button
-                            key={val}
-                            variant={budget === val ? "default" : "outline"}
-                            className="flex-1 h-9 text-sm"
-                            onClick={() => setBudget(val)}
-                          >
-                            {labels[val]}
-                          </Button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* SECTION 4: My Basket Button */}
-        <button
-          className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-forest bg-forest/5 hover:bg-forest/10 transition-colors"
-          onClick={() => setShowBasketSidebar(true)}
-        >
-          <div className="size-10 rounded-xl bg-forest/10 flex items-center justify-center">
-            <ShoppingBag className="size-5 text-forest" />
-          </div>
-          <div className="flex-1 text-start">
-            <span className="font-semibold text-sm">{t("customTrip.myBasket")}</span>
-            {totalBasketCount > 0 && (
-              <span className="text-xs text-muted-foreground ms-2">
-                ({totalBasketCount} {t("customTrip.itemsSelected")})
-              </span>
-            )}
-          </div>
-          {totalBasketCount > 0 && (
-            <Badge className="bg-forest text-white">{totalBasketCount}</Badge>
-          )}
-          <ChevronDown className="size-4 text-muted-foreground -rotate-90 rtl:rotate-90" />
-        </button>
       </div>
+
+      {/* Floating My Basket Button — bottom right */}
+      <button
+        className="fixed bottom-20 sm:bottom-6 end-4 z-40 flex items-center gap-2 bg-forest text-white rounded-full px-5 py-3 shadow-xl hover:bg-forest/90 transition-all hover:shadow-2xl"
+        onClick={() => setShowBasketSidebar(true)}
+      >
+        <ShoppingBag className="size-5" />
+        <span className="font-semibold text-sm">{t("customTrip.myBasket")}</span>
+        <span className="text-sm">({totalBasketCount})</span>
+      </button>
 
       {/* Basket Sidebar */}
       {showBasketSidebar && (
