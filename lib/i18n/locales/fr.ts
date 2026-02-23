@@ -1128,6 +1128,38 @@ const fr = {
     error: "Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.",
   },
 
+  // ===== AI CHAT PLANNER (Full Page) =====
+  chatPlanner: {
+    title: "Tripology IA",
+    readyStatus: "Prêt à planifier votre voyage",
+    thinkingStatus: "Réflexion en cours...",
+    heading: "Votre compagnon de voyage IA",
+    description: "Dites-moi où vous voulez aller et je créerai un itinéraire personnalisé avec de vraies recommandations.",
+    placeholder: "Posez-moi n'importe quelle question sur les voyages...",
+    disclaimer: "L'IA Tripology peut faire des erreurs. Vérifiez les détails importants du voyage.",
+    fallbackEmpty: "J'adorerais vous aider à planifier un voyage incroyable ! Parlez-moi de votre destination rêvée, vos dates et votre budget, et je créerai un itinéraire personnalisé.",
+    fallbackError: "J'ai du mal à me connecter, mais je suis toujours là pour vous aider ! Demandez-moi des destinations, activités ou budgets pour votre prochain voyage.",
+    fallbackHelp: "Je suis là pour vous aider à planifier votre voyage parfait ! Quelle destination avez-vous en tête ?",
+    prompt1: "Planifier un voyage de 5 jours à Paris",
+    prompt2: "Trésors cachés à Tokyo",
+    prompt3: "Voyage économique en Asie du Sud-Est",
+    prompt4: "Meilleurs spots photo en Islande",
+    prompt5: "Itinéraire gastronomique à Istanbul",
+    prompt6: "Complexe de luxe aux Maldives",
+    suggestParisRestaurants: "Montre-moi les meilleurs restaurants",
+    suggestParisDayTrips: "Et les excursions depuis Paris ?",
+    suggestParisBudget: "Détail du budget pour Paris",
+    suggestBudgetHostels: "Meilleures auberges à proximité ?",
+    suggestFreeActivities: "Activités gratuites",
+    suggestStreetFood: "Recommandations de street food",
+    suggestSpa: "Recommandations de spa",
+    suggestFineDining: "Options de restaurants gastronomiques",
+    suggestPrivateTour: "Guides touristiques privés",
+    suggestMore: "Dis-moi en plus sur cet endroit",
+    suggestBestTime: "Quelle est la meilleure période pour visiter ?",
+    suggestDayPlan: "Propose des activités pour une journée",
+  },
+
   // ===== ITINERARY DETAIL PAGE =====
   itineraryDetail: {
     overview: "Aperçu",

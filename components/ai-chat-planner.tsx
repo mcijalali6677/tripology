@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useI18n } from "@/lib/i18n/context"
 
 interface Message {
   id: string
@@ -33,12 +34,12 @@ interface TripCard {
 }
 
 const STARTER_PROMPTS = [
-  { icon: <Plane className="size-4" />, text: "Plan a 5-day trip to Paris", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  { icon: <MapPin className="size-4" />, text: "Hidden gems in Tokyo", color: "bg-rose-50 text-rose-700 border-rose-200" },
-  { icon: <DollarSign className="size-4" />, text: "Budget travel in Southeast Asia", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { icon: <Camera className="size-4" />, text: "Best photo spots in Iceland", color: "bg-amber-50 text-amber-700 border-amber-200" },
-  { icon: <Utensils className="size-4" />, text: "Food tour itinerary for Istanbul", color: "bg-orange-50 text-orange-700 border-orange-200" },
-  { icon: <Hotel className="size-4" />, text: "Luxury resort in Maldives", color: "bg-purple-50 text-purple-700 border-purple-200" },
+  { icon: <Plane className="size-4" />, textKey: "prompt1", color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { icon: <MapPin className="size-4" />, textKey: "prompt2", color: "bg-rose-50 text-rose-700 border-rose-200" },
+  { icon: <DollarSign className="size-4" />, textKey: "prompt3", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { icon: <Camera className="size-4" />, textKey: "prompt4", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  { icon: <Utensils className="size-4" />, textKey: "prompt5", color: "bg-orange-50 text-orange-700 border-orange-200" },
+  { icon: <Hotel className="size-4" />, textKey: "prompt6", color: "bg-purple-50 text-purple-700 border-purple-200" },
 ]
 
 export function AIChatPlanner({
@@ -57,6 +58,7 @@ export function AIChatPlanner({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { t, locale } = useI18n()
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -117,6 +119,7 @@ export function AIChatPlanner({
         body: JSON.stringify({
           message: messageContent,
           sessionId: currentSessionId,
+          locale: locale,
         }),
       })
 
@@ -154,7 +157,7 @@ export function AIChatPlanner({
                       msg.id === assistantMessage.id
                         ? {
                             ...msg,
-                            content: fullContent || data.content || "I'm here to help you plan your perfect trip! What destination are you thinking about?",
+                            content: fullContent || data.content || t("chatPlanner.fallbackHelp"),
                             isStreaming: false,
                             suggestions: generateSuggestions(messageContent),
                           }
@@ -185,7 +188,7 @@ export function AIChatPlanner({
             msg.id === assistantMessage.id
               ? {
                   ...msg,
-                  content: "I'd love to help you plan an amazing trip! Tell me about your dream destination, travel dates, and budget, and I'll create a personalized itinerary for you.",
+                  content: t("chatPlanner.fallbackEmpty"),
                   isStreaming: false,
                   suggestions: generateSuggestions(messageContent),
                 }
@@ -199,7 +202,7 @@ export function AIChatPlanner({
           msg.id === assistantMessage.id
             ? {
                 ...msg,
-                content: "I'm having trouble connecting right now, but I'm still here to help! Try asking me about destinations, activities, or budgets for your next trip.",
+                content: t("chatPlanner.fallbackError"),
                 isStreaming: false,
               }
             : msg
@@ -212,16 +215,16 @@ export function AIChatPlanner({
 
   const generateSuggestions = (userMessage: string): string[] => {
     const lower = userMessage.toLowerCase()
-    if (lower.includes("paris") || lower.includes("france")) {
-      return ["Show me the best restaurants", "What about day trips from Paris?", "Budget breakdown for Paris"]
+    if (lower.includes("paris") || lower.includes("france") || lower.includes("پاریس") || lower.includes("فرانسه")) {
+      return [t("chatPlanner.suggestParisRestaurants"), t("chatPlanner.suggestParisDayTrips"), t("chatPlanner.suggestParisBudget")]
     }
-    if (lower.includes("budget") || lower.includes("cheap")) {
-      return ["Best hostels nearby?", "Free activities to do", "Street food recommendations"]
+    if (lower.includes("budget") || lower.includes("cheap") || lower.includes("اقتصادی") || lower.includes("بودجه")) {
+      return [t("chatPlanner.suggestBudgetHostels"), t("chatPlanner.suggestFreeActivities"), t("chatPlanner.suggestStreetFood")]
     }
-    if (lower.includes("luxury") || lower.includes("resort")) {
-      return ["Spa recommendations", "Fine dining options", "Private tour guides"]
+    if (lower.includes("luxury") || lower.includes("resort") || lower.includes("لوکس") || lower.includes("ریزورت")) {
+      return [t("chatPlanner.suggestSpa"), t("chatPlanner.suggestFineDining"), t("chatPlanner.suggestPrivateTour")]
     }
-    return ["Tell me more about this place", "What's the best time to visit?", "Suggest activities for a day"]
+    return [t("chatPlanner.suggestMore"), t("chatPlanner.suggestBestTime"), t("chatPlanner.suggestDayPlan")]
   }
 
   const resetChat = () => {
@@ -256,11 +259,11 @@ export function AIChatPlanner({
               <Sparkles className="size-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-white text-sm">Tripology AI</h3>
+              <h3 className="font-semibold text-white text-sm">{t("chatPlanner.title")}</h3>
               <div className="flex items-center gap-1.5">
                 <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-[11px] text-white/70">
-                  {isLoading ? "Thinking..." : "Ready to plan your trip"}
+                  {isLoading ? t("chatPlanner.thinkingStatus") : t("chatPlanner.readyStatus")}
                 </span>
               </div>
             </div>
@@ -306,22 +309,22 @@ export function AIChatPlanner({
               <div className="size-16 rounded-2xl bg-gradient-to-br from-forest/10 to-emerald-100 flex items-center justify-center mb-4">
                 <Globe className="size-8 text-forest" />
               </div>
-              <h4 className="font-serif text-lg font-semibold mb-2">Your AI Travel Companion</h4>
+              <h4 className="font-serif text-lg font-semibold mb-2">{t("chatPlanner.heading")}</h4>
               <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-                Tell me where you want to go and I'll create a personalized itinerary with real recommendations.
+                {t("chatPlanner.description")}
               </p>
               <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
                 {STARTER_PROMPTS.map((prompt) => (
                   <button
-                    key={prompt.text}
-                    onClick={() => sendMessage(prompt.text)}
+                    key={prompt.textKey}
+                    onClick={() => sendMessage(t(`chatPlanner.${prompt.textKey}`))}
                     className={cn(
                       "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs text-start transition-all hover:shadow-md",
                       prompt.color
                     )}
                   >
                     {prompt.icon}
-                    <span className="line-clamp-2">{prompt.text}</span>
+                    <span className="line-clamp-2">{t(`chatPlanner.${prompt.textKey}`)}</span>
                   </button>
                 ))}
               </div>
@@ -426,7 +429,7 @@ export function AIChatPlanner({
                     sendMessage()
                   }
                 }}
-                placeholder="Ask me anything about travel..."
+                placeholder={t("chatPlanner.placeholder")}
                 className="w-full resize-none rounded-xl border bg-secondary/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 min-h-[44px] max-h-[120px]"
                 rows={1}
               />
@@ -444,7 +447,7 @@ export function AIChatPlanner({
             </Button>
           </div>
           <p className="text-[10px] text-muted-foreground/60 mt-1.5 text-center">
-            Tripology AI can make mistakes. Verify important travel details.
+            {t("chatPlanner.disclaimer")}
           </p>
         </div>
       </motion.div>

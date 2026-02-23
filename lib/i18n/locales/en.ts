@@ -1204,6 +1204,38 @@ const en = {
     error: "Sorry, I couldn't process your request. Please try again.",
   },
 
+  // ===== AI CHAT PLANNER (Full Page) =====
+  chatPlanner: {
+    title: "Tripology AI",
+    readyStatus: "Ready to plan your trip",
+    thinkingStatus: "Thinking...",
+    heading: "Your AI Travel Companion",
+    description: "Tell me where you want to go and I'll create a personalized itinerary with real recommendations.",
+    placeholder: "Ask me anything about travel...",
+    disclaimer: "Tripology AI can make mistakes. Verify important travel details.",
+    fallbackEmpty: "I'd love to help you plan an amazing trip! Tell me about your dream destination, travel dates, and budget, and I'll create a personalized itinerary for you.",
+    fallbackError: "I'm having trouble connecting right now, but I'm still here to help! Try asking me about destinations, activities, or budgets for your next trip.",
+    fallbackHelp: "I'm here to help you plan your perfect trip! What destination are you thinking about?",
+    prompt1: "Plan a 5-day trip to Paris",
+    prompt2: "Hidden gems in Tokyo",
+    prompt3: "Budget travel in Southeast Asia",
+    prompt4: "Best photo spots in Iceland",
+    prompt5: "Food tour itinerary for Istanbul",
+    prompt6: "Luxury resort in Maldives",
+    suggestParisRestaurants: "Show me the best restaurants",
+    suggestParisDayTrips: "What about day trips from Paris?",
+    suggestParisBudget: "Budget breakdown for Paris",
+    suggestBudgetHostels: "Best hostels nearby?",
+    suggestFreeActivities: "Free activities to do",
+    suggestStreetFood: "Street food recommendations",
+    suggestSpa: "Spa recommendations",
+    suggestFineDining: "Fine dining options",
+    suggestPrivateTour: "Private tour guides",
+    suggestMore: "Tell me more about this place",
+    suggestBestTime: "What's the best time to visit?",
+    suggestDayPlan: "Suggest activities for a day",
+  },
+
   // ===== ITINERARY DETAIL PAGE =====
   itineraryDetail: {
     overview: "Overview",

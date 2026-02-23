@@ -1128,6 +1128,38 @@ const ar = {
     error: "عذراً، لم أتمكن من معالجة طلبك. يرجى المحاولة مرة أخرى.",
   },
 
+  // ===== AI CHAT PLANNER (Full Page) =====
+  chatPlanner: {
+    title: "تريبولوجي AI",
+    readyStatus: "جاهز لتخطيط رحلتك",
+    thinkingStatus: "جارٍ التفكير...",
+    heading: "رفيق سفرك الذكي",
+    description: "أخبرني أين تريد الذهاب وسأنشئ لك خطة سفر مخصصة مع توصيات حقيقية.",
+    placeholder: "اسألني أي شيء عن السفر...",
+    disclaimer: "قد يخطئ الذكاء الاصطناعي. تحقق من تفاصيل السفر المهمة.",
+    fallbackEmpty: "أحب مساعدتك في تخطيط رحلة رائعة! أخبرني عن وجهتك المفضلة وتواريخ السفر والميزانية وسأنشئ لك خطة سفر مخصصة.",
+    fallbackError: "أواجه مشكلة في الاتصال حالياً، لكنني هنا لمساعدتك! اسأل عن الوجهات أو الأنشطة أو ميزانية رحلتك القادمة.",
+    fallbackHelp: "أنا هنا لمساعدتك في تخطيط رحلة مثالية! ما الوجهة التي تفكر فيها؟",
+    prompt1: "خطط لرحلة ٥ أيام إلى باريس",
+    prompt2: "جواهر مخفية في طوكيو",
+    prompt3: "سفر اقتصادي في جنوب شرق آسيا",
+    prompt4: "أفضل أماكن التصوير في آيسلندا",
+    prompt5: "جولة طعام في إسطنبول",
+    prompt6: "منتجع فاخر في المالديف",
+    suggestParisRestaurants: "أرني أفضل المطاعم",
+    suggestParisDayTrips: "ماذا عن الرحلات اليومية من باريس؟",
+    suggestParisBudget: "تفصيل ميزانية باريس",
+    suggestBudgetHostels: "أفضل النزل القريبة؟",
+    suggestFreeActivities: "أنشطة مجانية",
+    suggestStreetFood: "توصيات طعام الشارع",
+    suggestSpa: "توصيات سبا",
+    suggestFineDining: "خيارات المطاعم الفاخرة",
+    suggestPrivateTour: "مرشدون سياحيون خاصون",
+    suggestMore: "أخبرني المزيد عن هذا المكان",
+    suggestBestTime: "ما أفضل وقت للزيارة؟",
+    suggestDayPlan: "اقترح أنشطة ليوم واحد",
+  },
+
   // ===== ITINERARY DETAIL PAGE =====
   itineraryDetail: {
     overview: "نظرة عامة",

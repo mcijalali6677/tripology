@@ -25,7 +25,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   useImperativeHandle(ref, () => ({
     openChat: () => setIsOpen(true),
@@ -60,6 +60,7 @@ export const AIAssistantChat = forwardRef<{ openChat: () => void }, AIAssistantC
             role: m.role,
             content: m.content,
           })),
+          locale: locale,
         }),
       })
 

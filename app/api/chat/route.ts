@@ -11,17 +11,29 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { messages, sessionId, location, locale } = body;
+  const { messages, message, sessionId, location, locale } = body;
 
-  // Extract latest user message
-  const lastUserMsg =
+  // Extract latest user message (support both formats)
+  const lastUserMsg = message ||
     [...(messages || [])].reverse().find((m: { role: string }) => m.role === "user")?.content || "";
+
+  // Build locale instruction so LLM responds in the user's language
+  const LOCALE_NAMES: Record<string, string> = {
+    fa: "Persian (Farsi)",
+    ar: "Arabic",
+    fr: "French",
+    en: "English",
+  };
+  const userLocale = locale || "en";
+  const localeInstruction = userLocale !== "en"
+    ? `[IMPORTANT: Respond entirely in ${LOCALE_NAMES[userLocale] || userLocale}. Do NOT respond in English.] `
+    : "";
 
   // Prepend location context to the message if available
   const locationContext = location
     ? `[User location: ${location.address || `${location.lat}, ${location.lng}`}] `
     : "";
-  const enrichedMsg = locationContext + lastUserMsg;
+  const enrichedMsg = localeInstruction + locationContext + lastUserMsg;
 
   // If we have a sessionId, use the streaming endpoint
   const targetSessionId = sessionId || "default";
