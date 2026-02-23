@@ -54,13 +54,33 @@ export const metadata: Metadata = {
   },
 }
 
+// Inline script that runs before first paint to set lang/dir from localStorage
+// This prevents the flash of wrong language (FOWL)
+const localeInitScript = `
+(function(){
+  try {
+    var l = localStorage.getItem('tripology-locale');
+    if (l && ['en','fa','ar','fr'].indexOf(l) !== -1) {
+      document.documentElement.setAttribute('lang', l);
+      var rtl = l === 'fa' || l === 'ar';
+      document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+      if (rtl) document.documentElement.classList.add('rtl');
+      else document.documentElement.classList.remove('rtl');
+    }
+  } catch(e){}
+})()
+`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${vazirmatn.variable}`}>
+    <html lang="fa" dir="rtl" className={`rtl ${inter.variable} ${playfair.variable} ${vazirmatn.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: localeInitScript }} />
+      </head>
       <body className="antialiased">
         <RootLayoutWrapper>
           {children}

@@ -23,15 +23,24 @@ const I18nContext = createContext<I18nContextType | null>(null)
 
 const STORAGE_KEY = "tripology-locale"
 
+// Read locale synchronously to avoid flash of wrong language
+function getInitialLocale(): Locale {
+  if (typeof window === "undefined") return "fa" // SSR default = Farsi
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY) as Locale | null
+    if (saved && (saved in translations)) return saved
+  } catch {}
+  return "fa" // Default to Farsi for Iranian users
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
+  const [locale, setLocaleState] = useState<Locale>(getInitialLocale)
   const [mounted, setMounted] = useState(false)
 
-  // Load saved locale on mount, or detect from geo
+  // On mount: if no saved locale, try geo-detection
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null
     if (saved && translations[saved]) {
-      setLocaleState(saved)
       setMounted(true)
       return
     }
