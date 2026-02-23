@@ -46,15 +46,18 @@ export async function POST(req: Request) {
     // 1. Create or reuse session
     let sid = sessionId;
     if (!sid) {
+      console.log("[chat] Creating session at:", `${API_BASE}/chat/sessions`);
       const sessionRes = await fetch(`${API_BASE}/chat/sessions`, {
         method: "POST",
         headers,
         body: JSON.stringify({ title: lastUserMsg.slice(0, 80) || "Web Chat" }),
         signal: AbortSignal.timeout(8000),
       });
+      console.log("[chat] Session response:", sessionRes.status);
       if (sessionRes.ok) {
         const session = await sessionRes.json();
         sid = session.id;
+        console.log("[chat] Session created:", sid);
       } else {
         console.error("[chat] Session creation failed:", sessionRes.status, await sessionRes.text().catch(() => ""));
       }
@@ -63,43 +66,56 @@ export async function POST(req: Request) {
     if (!sid) throw new Error("Could not create chat session");
 
     // 2. Stream response from backend
+    console.log("[chat] Starting stream at:", `${API_BASE}/chat/sessions/${sid}/stream`);
     const streamRes = await fetch(`${API_BASE}/chat/sessions/${sid}/stream`, {
       method: "POST",
       headers,
       body: JSON.stringify({ message: enrichedMsg }),
       signal: AbortSignal.timeout(180000),
     });
+    console.log("[chat] Stream response:", streamRes.status, "body:", !!streamRes.body);
 
     if (streamRes.ok && streamRes.body) {
-      // Inject sessionId into the SSE stream and forward the backend stream
+      // Pass the backend SSE stream directly to the client
+      // Also create a parallel stream to inject sessionId
       const encoder = new TextEncoder();
       const backendReader = streamRes.body.getReader();
       const { readable, writable } = new TransformStream();
       const writer = writable.getWriter();
 
       // Pipe data in a detached async context so the Response starts flowing immediately
-      (async () => {
+      const pipePromise = (async () => {
         try {
+          console.log("[chat] Pipe: writing sessionId");
           // Send session ID as the first SSE event
           await writer.write(encoder.encode(`data: ${JSON.stringify({ sessionId: sid })}\n\n`));
+          console.log("[chat] Pipe: sessionId written, starting stream copy");
           // Forward all chunks from the backend stream
+          let chunks = 0;
           while (true) {
             const { done, value } = await backendReader.read();
             if (done) break;
             await writer.write(value);
+            chunks++;
+            if (chunks <= 3) console.log("[chat] Pipe: chunk", chunks, "size:", value?.length);
           }
-        } catch {
-          // Stream interrupted
+          console.log("[chat] Pipe: done, total chunks:", chunks);
+        } catch (e) {
+          console.error("[chat] Pipe error:", e);
         } finally {
           try { await writer.close(); } catch { /* already closed */ }
         }
       })();
 
+      // CRITICAL: Do NOT await pipePromise — return immediately so headers flush to client
+      void pipePromise;
+
+      console.log("[chat] Returning SSE Response now");
       return new Response(readable, {
+        status: 200,
         headers: {
           "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
+          "Cache-Control": "no-cache, no-transform",
           "X-Accel-Buffering": "no",
         },
       });
