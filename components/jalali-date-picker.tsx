@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -19,10 +19,34 @@ interface JalaliDatePickerProps {
   onChange: (value: string) => void
   label?: string
   className?: string
+  /** Controlled open state — when provided, the parent manages open/close */
+  isOpen?: boolean
+  /** Called when user wants to open/close the picker */
+  onOpenChange?: (open: boolean) => void
 }
 
-export function JalaliDatePicker({ value, onChange, label, className }: JalaliDatePickerProps) {
-  const [open, setOpen] = useState(false)
+export function JalaliDatePicker({ value, onChange, label, className, isOpen, onOpenChange }: JalaliDatePickerProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Use controlled or uncontrolled open state
+  const open = isOpen !== undefined ? isOpen : internalOpen
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v)
+    else setInternalOpen(v)
+  }
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
 
   // Parse current value to Jalali
   const [valYear, valMonth, valDay] = useMemo(() => {
@@ -75,7 +99,7 @@ export function JalaliDatePicker({ value, onChange, label, className }: JalaliDa
     : "انتخاب تاریخ"
 
   return (
-    <div className={cn("relative", className)}>
+    <div ref={ref} className={cn("relative", className)}>
       <button
         type="button"
         onClick={() => {

@@ -174,12 +174,15 @@ export default function CustomTripPage() {
   }
 
   // Trip Settings State
-  const [destination, setDestination] = useState("Paris")
+  const [destination, setDestination] = useState(() => locale === "fa" ? "تهران" : "Paris")
   const [startDate, setStartDate] = useState("2026-03-15")
   const [endDate, setEndDate] = useState("2026-03-25")
   const [travelers, setTravelers] = useState(2)
   const [budget, setBudget] = useState<"budget" | "mid" | "luxury">("mid")
   const [accommodationStatus, setAccommodationStatus] = useState<"booked" | "planning" | "undecided">("undecided")
+
+  // Calendar coordination: only one open at a time
+  const [openCalendar, setOpenCalendar] = useState<"start" | "end" | null>(null)
 
   // UI State
   const [aiExpanded, setAiExpanded] = useState(true)
@@ -203,6 +206,13 @@ export default function CustomTripPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "budget" | "mid" | "high">("all")
   const [popularOnly, setPopularOnly] = useState(false)
+
+  // Set default destination based on locale
+  useEffect(() => {
+    if (locale === "fa" && destination === "Paris") {
+      setDestination("تهران")
+    }
+  }, [locale])
 
   // Persist session & baskets
   useEffect(() => {
@@ -791,7 +801,12 @@ export default function CustomTripPage() {
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.startDate")}</Label>
                           {locale === "fa" ? (
-                            <JalaliDatePicker value={startDate} onChange={setStartDate} />
+                            <JalaliDatePicker
+                              value={startDate}
+                              onChange={setStartDate}
+                              isOpen={openCalendar === "start"}
+                              onOpenChange={(v) => setOpenCalendar(v ? "start" : null)}
+                            />
                           ) : (
                             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-10" />
                           )}
@@ -799,7 +814,12 @@ export default function CustomTripPage() {
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">{t("customTrip.endDate")}</Label>
                           {locale === "fa" ? (
-                            <JalaliDatePicker value={endDate} onChange={setEndDate} />
+                            <JalaliDatePicker
+                              value={endDate}
+                              onChange={setEndDate}
+                              isOpen={openCalendar === "end"}
+                              onOpenChange={(v) => setOpenCalendar(v ? "end" : null)}
+                            />
                           ) : (
                             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-10" />
                           )}
