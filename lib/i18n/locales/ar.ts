@@ -216,6 +216,7 @@ const ar = {
     emailPlaceholder: "أدخل بريدك الإلكتروني",
     password: "كلمة المرور",
     passwordPlaceholder: "أدخل كلمة المرور",
+    minChars: "٨ أحرف على الأقل",
     rememberMe: "تذكرني",
     forgotPassword: "نسيت كلمة المرور؟",
     signInButton: "تسجيل الدخول",

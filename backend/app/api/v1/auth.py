@@ -52,8 +52,8 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     rt = RefreshToken(
         user_id=user.id,
         token=refresh_token,
-        expires_at=datetime.fromtimestamp(
-            decode_token(refresh_token)["exp"], tz=timezone.utc
+        expires_at=datetime.utcfromtimestamp(
+            decode_token(refresh_token)["exp"]
         ),
         device_type=data.device_type,
         device_name=data.device_name,
@@ -89,7 +89,7 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Account is deactivated")
     
     # Update last login
-    user.last_login = datetime.now(timezone.utc)
+    user.last_login = datetime.utcnow()
     
     # Generate tokens
     access_token = create_access_token(user.id, user.role.value)
@@ -99,8 +99,8 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     rt = RefreshToken(
         user_id=user.id,
         token=refresh_token,
-        expires_at=datetime.fromtimestamp(
-            decode_token(refresh_token)["exp"], tz=timezone.utc
+        expires_at=datetime.utcfromtimestamp(
+            decode_token(refresh_token)["exp"]
         ),
         device_type=data.device_type,
         device_name=data.device_name,
@@ -149,8 +149,8 @@ async def refresh_token(data: RefreshRequest, db: AsyncSession = Depends(get_db)
     rt = RefreshToken(
         user_id=user.id,
         token=new_refresh,
-        expires_at=datetime.fromtimestamp(
-            decode_token(new_refresh)["exp"], tz=timezone.utc
+        expires_at=datetime.utcfromtimestamp(
+            decode_token(new_refresh)["exp"]
         ),
         device_type=stored_token.device_type,
         device_name=stored_token.device_name,

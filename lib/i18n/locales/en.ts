@@ -218,6 +218,7 @@ const en = {
     emailPlaceholder: "Enter your email",
     password: "Password",
     passwordPlaceholder: "Enter your password",
+    minChars: "Min 8 characters",
     rememberMe: "Remember me",
     forgotPassword: "Forgot password?",
     signInButton: "Sign In",

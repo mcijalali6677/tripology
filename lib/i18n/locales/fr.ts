@@ -216,6 +216,7 @@ const fr = {
     emailPlaceholder: "Entrez votre e-mail",
     password: "Mot de passe",
     passwordPlaceholder: "Entrez votre mot de passe",
+    minChars: "8 caractères minimum",
     rememberMe: "Se souvenir de moi",
     forgotPassword: "Mot de passe oublié ?",
     signInButton: "Se connecter",

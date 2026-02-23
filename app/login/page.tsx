@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Loader2, Globe, Sparkles } from "lucide-react"
+import { ArrowLeft, Loader2, Globe, Sparkles, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useI18n } from "@/lib/i18n/context"
 
@@ -23,12 +23,14 @@ export default function LoginPage() {
   // Login form
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
   
   // Register form
   const [regEmail, setRegEmail] = useState("")
   const [regUsername, setRegUsername] = useState("")
   const [regPassword, setRegPassword] = useState("")
   const [regFullName, setRegFullName] = useState("")
+  const [showRegPassword, setShowRegPassword] = useState(false)
   
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -113,14 +115,25 @@ export default function LoginPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">{t("login.password")}</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder={t("login.passwordPlaceholder")}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                      className="pe-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute inset-y-0 end-0 flex items-center pe-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showLoginPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full bg-forest hover:bg-forest/90" disabled={isLoading}>
                   {isLoading ? <Loader2 className="size-4 me-2 animate-spin" /> : null}
@@ -130,7 +143,7 @@ export default function LoginPage() {
               
               <div className="mt-4 text-center">
                 <p className="text-xs text-muted-foreground">
-                  Demo: admin@tripology.com / admin123
+                  {t("login.forgotPassword")}
                 </p>
               </div>
             </TabsContent>
@@ -171,15 +184,26 @@ export default function LoginPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reg-password">{t("login.password")}</Label>
-                  <Input
-                    id="reg-password"
-                    type="password"
-                    placeholder="Min 8 characters"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    required
-                    minLength={8}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="reg-password"
+                      type={showRegPassword ? "text" : "password"}
+                      placeholder={t("login.minChars")}
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="pe-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="absolute inset-y-0 end-0 flex items-center pe-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showRegPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full bg-forest hover:bg-forest/90" disabled={isLoading}>
                   {isLoading ? <Loader2 className="size-4 me-2 animate-spin" /> : null}

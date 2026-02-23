@@ -218,6 +218,7 @@ const fa = {
     emailPlaceholder: "ایمیل خود را وارد کنید",
     password: "رمز عبور",
     passwordPlaceholder: "رمز عبور خود را وارد کنید",
+    minChars: "حداقل ۸ کاراکتر",
     rememberMe: "مرا به خاطر بسپار",
     forgotPassword: "رمز عبور را فراموش کرده‌اید؟",
     signInButton: "ورود",
