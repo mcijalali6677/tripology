@@ -1216,12 +1216,23 @@ const en = {
     fallbackEmpty: "I'd love to help you plan an amazing trip! Tell me about your dream destination, travel dates, and budget, and I'll create a personalized itinerary for you.",
     fallbackError: "I'm having trouble connecting right now, but I'm still here to help! Try asking me about destinations, activities, or budgets for your next trip.",
     fallbackHelp: "I'm here to help you plan your perfect trip! What destination are you thinking about?",
+    // Local prompts (shown by default for this locale)
     prompt1: "Plan a 5-day trip to Paris",
     prompt2: "Hidden gems in Tokyo",
     prompt3: "Budget travel in Southeast Asia",
     prompt4: "Best photo spots in Iceland",
     prompt5: "Food tour itinerary for Istanbul",
     prompt6: "Luxury resort in Maldives",
+    // International prompts (shown when user clicks 'international')
+    intlPrompt1: "Plan a 5-day trip to Paris",
+    intlPrompt2: "Hidden gems in Tokyo",
+    intlPrompt3: "Budget travel in Southeast Asia",
+    intlPrompt4: "Best photo spots in Iceland",
+    intlPrompt5: "Food tour itinerary for Istanbul",
+    intlPrompt6: "Luxury resort in Maldives",
+    // Toggle labels
+    showInternational: "Show international destinations",
+    showLocal: "Show local destinations",
     suggestParisRestaurants: "Show me the best restaurants",
     suggestParisDayTrips: "What about day trips from Paris?",
     suggestParisBudget: "Budget breakdown for Paris",

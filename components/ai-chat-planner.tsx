@@ -33,13 +33,13 @@ interface TripCard {
   tags?: string[]
 }
 
-const STARTER_PROMPTS = [
-  { icon: <Plane className="size-4" />, textKey: "prompt1", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  { icon: <MapPin className="size-4" />, textKey: "prompt2", color: "bg-rose-50 text-rose-700 border-rose-200" },
-  { icon: <DollarSign className="size-4" />, textKey: "prompt3", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { icon: <Camera className="size-4" />, textKey: "prompt4", color: "bg-amber-50 text-amber-700 border-amber-200" },
-  { icon: <Utensils className="size-4" />, textKey: "prompt5", color: "bg-orange-50 text-orange-700 border-orange-200" },
-  { icon: <Hotel className="size-4" />, textKey: "prompt6", color: "bg-purple-50 text-purple-700 border-purple-200" },
+const PROMPT_ICONS = [
+  { icon: <Plane className="size-4" />, color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { icon: <MapPin className="size-4" />, color: "bg-rose-50 text-rose-700 border-rose-200" },
+  { icon: <DollarSign className="size-4" />, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { icon: <Camera className="size-4" />, color: "bg-amber-50 text-amber-700 border-amber-200" },
+  { icon: <Utensils className="size-4" />, color: "bg-orange-50 text-orange-700 border-orange-200" },
+  { icon: <Hotel className="size-4" />, color: "bg-purple-50 text-purple-700 border-purple-200" },
 ]
 
 export function AIChatPlanner({
@@ -56,9 +56,17 @@ export function AIChatPlanner({
   const [isLoading, setIsLoading] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [showInternational, setShowInternational] = useState(locale === "en")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { t, locale } = useI18n()
+
+  // Build prompt keys based on local vs international toggle
+  const promptPrefix = showInternational ? "intlPrompt" : "prompt"
+  const currentPrompts = PROMPT_ICONS.map((p, i) => ({
+    ...p,
+    textKey: `${promptPrefix}${i + 1}`,
+  }))
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -313,8 +321,20 @@ export function AIChatPlanner({
               <p className="text-sm text-muted-foreground mb-6 max-w-xs">
                 {t("chatPlanner.description")}
               </p>
+
+              {/* Local/International toggle — only for non-English locales */}
+              {locale !== "en" && (
+                <button
+                  onClick={() => setShowInternational(!showInternational)}
+                  className="flex items-center gap-1.5 text-xs text-forest hover:text-forest/80 mb-4 transition-colors"
+                >
+                  <Globe className="size-3.5" />
+                  {showInternational ? t("chatPlanner.showLocal") : t("chatPlanner.showInternational")}
+                </button>
+              )}
+
               <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-                {STARTER_PROMPTS.map((prompt) => (
+                {currentPrompts.map((prompt) => (
                   <button
                     key={prompt.textKey}
                     onClick={() => sendMessage(t(`chatPlanner.${prompt.textKey}`))}
