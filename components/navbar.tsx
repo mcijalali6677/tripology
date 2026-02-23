@@ -69,17 +69,21 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
                 <Search className="size-4 lg:size-[18px]" />
               </Button>
             </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="icon" className="hidden md:flex lg:size-10">
-                <Heart className="size-4 lg:size-[18px]" />
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <Link href="/profile">
+                <Button variant="ghost" size="icon" className="hidden md:flex lg:size-10">
+                  <Heart className="size-4 lg:size-[18px]" />
+                </Button>
+              </Link>
+            )}
             <LanguageSwitcher />
-            <Link href="/profile">
-              <Button variant="ghost" size="icon" className="hidden md:flex lg:size-10">
-                <User className="size-4 lg:size-[18px]" />
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <Link href="/profile">
+                <Button variant="ghost" size="icon" className="hidden md:flex lg:size-10">
+                  <User className="size-4 lg:size-[18px]" />
+                </Button>
+              </Link>
+            )}
             {isAuthenticated ? (
               <>
                 {user?.role === "admin" && (
@@ -159,14 +163,16 @@ export function Navbar({ onOpenAIChat }: { onOpenAIChat?: () => void }) {
                       <Navigation className="size-4" />
                       {t("navbar.duringTrip")}
                     </Link>
-                    <Link 
-                      href="/profile" 
-                      className="text-base font-medium flex items-center gap-2" 
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <User className="size-4" />
-                      {t("navbar.myProfile")}
-                    </Link>
+                    {isAuthenticated && (
+                      <Link 
+                        href="/profile" 
+                        className="text-base font-medium flex items-center gap-2" 
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <User className="size-4" />
+                        {t("navbar.myProfile")}
+                      </Link>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <LanguageSwitcher variant="full" />

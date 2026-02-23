@@ -126,12 +126,43 @@ const userData = {
 export default function ProfilePage() {
   const { t, locale } = useI18n()
   const [activeTab, setActiveTab] = useState("overview")
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
   
-  // Merge real user data with mock data when authenticated
-  const displayUser = isAuthenticated && user ? {
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      window.location.href = "/login"
+    }
+  }, [isLoading, isAuthenticated])
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render profile content if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    )
+  }
+
+  // Use real user data
+  const displayUser = {
     ...userData,
-    name: user.full_name || user.username || t("profile.mockName"),
+    name: user.full_name || user.username || userData.name,
     email: user.email || userData.email,
     avatar: user.avatar_url || userData.avatar,
     location: user.country || t("profile.mockLocation"),
@@ -147,11 +178,6 @@ export default function ProfilePage() {
         nature: user.personality_scores.nature === "high" ? 90 : user.personality_scores.nature === "medium" ? 60 : 30,
       }
     } : userData.travelPersonality,
-  } : {
-    ...userData,
-    name: t("profile.mockName"),
-    location: t("profile.mockLocation"),
-    joinedDate: t("profile.mockJoinedDate"),
   }
   
   return (

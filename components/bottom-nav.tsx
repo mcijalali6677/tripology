@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Map, Sparkles, Share2, User } from "lucide-react"
+import { Home, Map, Sparkles, Share2, User, LogIn } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/lib/i18n/context"
+import { useAuth } from "@/lib/auth-context"
 
 export function BottomNav() {
   const pathname = usePathname()
   const { t } = useI18n()
+  const { isAuthenticated } = useAuth()
 
   const navItems = [
     {
@@ -33,9 +35,9 @@ export function BottomNav() {
       icon: Share2,
     },
     {
-      label: t("bottomNav.profile"),
-      href: "/profile",
-      icon: User,
+      label: isAuthenticated ? t("bottomNav.profile") : t("common.signIn"),
+      href: isAuthenticated ? "/profile" : "/login",
+      icon: isAuthenticated ? User : LogIn,
     },
   ]
 
