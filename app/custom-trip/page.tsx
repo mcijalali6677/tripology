@@ -441,7 +441,7 @@ export default function CustomTripPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-4 space-y-4 max-w-2xl">
+      <div className="container mx-auto px-4 py-4 space-y-4">
 
         {/* SECTION 1: AI Plans It For Me */}
         <div className="rounded-xl border bg-card overflow-hidden">
