@@ -58,8 +58,10 @@ const userData = {
   // Travel personality (calculated from quiz, searches, saved items)
   travelPersonality: {
     type: "Cultural Explorer",
+    typeKey: "personalityType",
     description: "You love immersing yourself in local culture, history, and authentic experiences.",
-    traits: ["History Lover", "Foodie", "Art Enthusiast", "Budget-Savvy"],
+    descKey: "personalityDesc",
+    traits: ["historyLover", "foodie", "artEnthusiast", "budgetSavvy"],
     scores: {
       adventure: 65,
       cultural: 90,
@@ -81,9 +83,9 @@ const userData = {
   
   // Saved/Wishlist destinations
   wishlist: [
-    { id: "1", destination: "Paris", country: "France", image: "/paris-eiffel-tower-sunset.jpg", savedDate: "2 days ago" },
-    { id: "2", destination: "Tokyo", country: "Japan", image: "/paris-montmartre-streets.jpg", savedDate: "1 week ago" },
-    { id: "3", destination: "Barcelona", country: "Spain", image: "/paris-seine-river.jpg", savedDate: "2 weeks ago" },
+    { id: "1", destination: "Paris", destinationKey: "paris", country: "France", countryKey: "france", image: "/paris-eiffel-tower-sunset.jpg", savedDate: "2 days ago", savedDateKey: "twoDaysAgo" },
+    { id: "2", destination: "Tokyo", destinationKey: "tokyo", country: "Japan", countryKey: "japan", image: "/paris-montmartre-streets.jpg", savedDate: "1 week ago", savedDateKey: "oneWeekAgo" },
+    { id: "3", destination: "Barcelona", destinationKey: "barcelona", country: "Spain", countryKey: "spain", image: "/paris-seine-river.jpg", savedDate: "2 weeks ago", savedDateKey: "twoWeeksAgo" },
   ],
   
   // Purchased plans
@@ -106,23 +108,23 @@ const userData = {
   
   // Recommended based on preferences
   recommendations: [
-    { destination: "Rome", reason: "Based on your love for history & culture", match: 94 },
-    { destination: "Lisbon", reason: "Great for budget-conscious foodies", match: 89 },
-    { destination: "Kyoto", reason: "Perfect blend of culture & nature", match: 87 },
+    { destination: "Rome", reason: "basedOnLove", match: 94 },
+    { destination: "Lisbon", reason: "greatForBudget", match: 89 },
+    { destination: "Kyoto", reason: "perfectBlend", match: 87 },
   ],
   
   // Preferences
   preferences: {
     budgetRange: "$100-200/day",
     tripLength: "7-10 days",
-    travelStyle: "Couple",
-    interests: ["Museums", "Local Food", "Walking Tours", "Photography", "Cafes"],
-    avoidances: ["Crowded Tourist Spots", "Long Bus Tours"]
+    travelStyle: "couple",
+    interests: ["museums", "localFood", "walkingTours", "photography", "cafes"],
+    avoidances: ["crowdedTouristSpots", "longBusTours"]
   }
 }
 
 export default function ProfilePage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [activeTab, setActiveTab] = useState("overview")
   const { user, isAuthenticated, logout } = useAuth()
   
@@ -186,12 +188,12 @@ export default function ProfilePage() {
                     Premium
                   </Badge>
                 ) : (
-                  <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => toast({ title: "Premium", description: "Coming soon..." })}>
+                  <Button size="sm" className="bg-amber-500 hover:bg-amber-600" onClick={() => toast({ title: t("profile.premium"), description: t("profile.comingSoon") })}>
                     <Crown className="size-4 me-1" />
-                    Upgrade to Premium
+                    {t("profile.upgradeToPremium")}
                   </Button>
                 )}
-                <Button size="icon" variant="outline" className="bg-transparent" onClick={() => toast({ title: "Settings", description: "Coming soon..." })}>
+                <Button size="icon" variant="outline" className="bg-transparent" onClick={() => toast({ title: t("profile.settings"), description: t("profile.comingSoon") })}>
                   <Settings className="size-4" />
                 </Button>
               </div>
@@ -204,8 +206,8 @@ export default function ProfilePage() {
                   <Compass className="size-5 text-forest" />
                 </div>
                 <div>
-                  <p className="font-semibold text-forest">{userData.travelPersonality.type}</p>
-                  <p className="text-xs text-muted-foreground">{userData.travelPersonality.description}</p>
+                  <p className="font-semibold text-forest">{t(`profile.${userData.travelPersonality.typeKey}`)}</p>
+                  <p className="text-xs text-muted-foreground">{t(`profile.${userData.travelPersonality.descKey}`)}</p>
                 </div>
               </div>
             </div>
@@ -217,27 +219,27 @@ export default function ProfilePage() {
           <Card className="p-4 text-center">
             <Heart className="size-5 mx-auto text-rose-500 mb-1" />
             <p className="text-2xl font-bold">{userData.stats.savedItineraries}</p>
-            <p className="text-xs text-muted-foreground">Saved</p>
+            <p className="text-xs text-muted-foreground">{t("profile.savedLabel")}</p>
           </Card>
           <Card className="p-4 text-center">
             <DollarSign className="size-5 mx-auto text-emerald-500 mb-1" />
             <p className="text-2xl font-bold">{userData.stats.purchasedPlans}</p>
-            <p className="text-xs text-muted-foreground">Purchased</p>
+            <p className="text-xs text-muted-foreground">{t("profile.purchased")}</p>
           </Card>
           <Card className="p-4 text-center">
             <Globe className="size-5 mx-auto text-blue-500 mb-1" />
             <p className="text-2xl font-bold">{userData.stats.countriesInterested}</p>
-            <p className="text-xs text-muted-foreground">Countries</p>
+            <p className="text-xs text-muted-foreground">{t("profile.countries")}</p>
           </Card>
           <Card className="p-4 text-center">
             <Star className="size-5 mx-auto text-amber-500 mb-1" />
             <p className="text-2xl font-bold">{userData.stats.reviewsWritten}</p>
-            <p className="text-xs text-muted-foreground">Reviews</p>
+            <p className="text-xs text-muted-foreground">{t("profile.reviews")}</p>
           </Card>
           <Card className="p-4 text-center col-span-2 sm:col-span-1">
             <Award className="size-5 mx-auto text-violet-500 mb-1" />
             <p className="text-2xl font-bold">{userData.stats.quizzesTaken}</p>
-            <p className="text-xs text-muted-foreground">Quizzes</p>
+            <p className="text-xs text-muted-foreground">{t("profile.quizzes")}</p>
           </Card>
         </div>
         
@@ -257,12 +259,12 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-3">
                 <Badge variant="secondary" className="bg-forest/10 text-forest">
-                  {userData.activeTrips[0].daysUntil} days to go
+                  {userData.activeTrips[0].daysUntil} {t("profile.daysToGo")}
                 </Badge>
                 <Link href={`/trip-companion?trip=${userData.activeTrips[0].id}`}>
                   <Button className="bg-forest hover:bg-forest/90">
                     <Sparkles className="size-4 me-2" />
-                    Trip Companion
+                    {t("profile.tripCompanion")}
                   </Button>
                 </Link>
               </div>
@@ -289,14 +291,14 @@ export default function ProfilePage() {
               </h3>
               <div className="flex flex-wrap gap-2 mb-4">
                 {userData.travelPersonality.traits.map(trait => (
-                  <Badge key={trait} variant="secondary">{trait}</Badge>
+                  <Badge key={trait} variant="secondary">{t(`profile.${trait}`)}</Badge>
                 ))}
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {Object.entries(userData.travelPersonality.scores).map(([key, value]) => (
                   <div key={key}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="capitalize">{key}</span>
+                      <span className="capitalize">{t(`profile.${key}`)}</span>
                       <span className="font-medium">{value}%</span>
                     </div>
                     <Progress value={value} className="h-2" />
@@ -324,11 +326,11 @@ export default function ProfilePage() {
                       </div>
                       <div>
                         <p className="font-medium">{rec.destination}</p>
-                        <p className="text-xs text-muted-foreground">{rec.reason}</p>
+                        <p className="text-xs text-muted-foreground">{t(`profile.${rec.reason}`)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-emerald-100 text-emerald-700">{rec.match}% match</Badge>
+                      <Badge className="bg-emerald-100 text-emerald-700">{rec.match}% {t("profile.match")}</Badge>
                       <ChevronRight className="size-4 text-muted-foreground" />
                     </div>
                   </Link>
@@ -351,7 +353,7 @@ export default function ProfilePage() {
                   <div className="p-3">
                     <h4 className="font-semibold">{item.destination}</h4>
                     <p className="text-sm text-muted-foreground">{item.country}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Saved {item.savedDate}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("profile.savedAgo")} {item.savedDate}</p>
                   </div>
                 </Card>
               ))}
@@ -370,7 +372,7 @@ export default function ProfilePage() {
                     <div>
                       <p className="font-medium">{plan.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {plan.traveler ? `By ${plan.traveler}` : plan.type} - Purchased {plan.purchaseDate}
+                        {plan.traveler ? `${t("profile.by")} ${plan.traveler}` : plan.type} - {t("profile.purchasedOn")} {plan.purchaseDate}
                       </p>
                     </div>
                   </div>
@@ -390,52 +392,52 @@ export default function ProfilePage() {
               <h3 className="font-semibold mb-4">{t("profile.travelPreferences")}</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Budget Range</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("profile.budgetRange")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <DollarSign className="size-4 text-forest" />
                     {userData.preferences.budgetRange}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Preferred Trip Length</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("profile.preferredTripLength")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <Calendar className="size-4 text-forest" />
                     {userData.preferences.tripLength}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Travel Style</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("profile.travelStyle")}</p>
                   <p className="font-medium flex items-center gap-2">
                     <Users className="size-4 text-forest" />
-                    {userData.preferences.travelStyle}
+                    {t(`profile.${userData.preferences.travelStyle}`)}
                   </p>
                 </div>
               </div>
             </Card>
             
             <Card className="p-6">
-              <h3 className="font-semibold mb-4">Interests</h3>
+              <h3 className="font-semibold mb-4">{t("profile.interests")}</h3>
               <div className="flex flex-wrap gap-2">
                 {userData.preferences.interests.map(interest => (
                   <Badge key={interest} variant="secondary" className="py-1.5 px-3">
-                    {interest}
+                    {t(`profile.${interest}`)}
                   </Badge>
                 ))}
               </div>
             </Card>
             
             <Card className="p-6">
-              <h3 className="font-semibold mb-4">Things to Avoid</h3>
+              <h3 className="font-semibold mb-4">{t("profile.thingsToAvoid")}</h3>
               <div className="flex flex-wrap gap-2">
                 {userData.preferences.avoidances.map(item => (
                   <Badge key={item} variant="outline" className="py-1.5 px-3 bg-transparent">
-                    {item}
+                    {t(`profile.${item}`)}
                   </Badge>
                 ))}
               </div>
             </Card>
             
-            <Button variant="outline" className="w-full bg-transparent" onClick={() => toast({ title: t("profile.editPreferences"), description: "Coming soon..." })}>
+            <Button variant="outline" className="w-full bg-transparent" onClick={() => toast({ title: t("profile.editPreferences"), description: t("profile.comingSoon") })}>
               <Edit className="size-4 me-2" />
               {t("profile.editPreferences")}
             </Button>
