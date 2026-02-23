@@ -421,6 +421,10 @@ const fa = {
       cafes: "کافه‌ها",
       transport: "حمل‌ونقل",
       experiences: "تجربه‌ها",
+      shopping: "خرید",
+      nightlife: "زندگی شبانه",
+      wellness: "سلامت و آرامش",
+      tours: "تورها",
     },
     categoryDescriptions: {
       activities: "فعالیت‌ها و دیدنی‌ها",
@@ -429,6 +433,10 @@ const fa = {
       cafes: "کافه و قهوه",
       transport: "حمل‌ونقل",
       experiences: "تجربه‌های محلی",
+      shopping: "خرید و بازارها",
+      nightlife: "زندگی شبانه و بارها",
+      wellness: "سلامت و آرامش",
+      tours: "تورهای راهنمادار",
     },
     filters: {
       activityType: "نوع فعالیت",

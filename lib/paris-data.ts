@@ -149,5 +149,72 @@ export const parisData = {
         { id: "x8", title: "Cheese & Wine Pairing", description: "Learn from a sommelier", image: "/paris-cafe-terrace.jpg", duration: "2 hours", cost: 65, rating: 4.8, reviews: 1543, tags: ["food", "experience"] },
       ]
     },
+
+    shopping: {
+      title: "Shopping & Markets",
+      icon: "ShoppingBag",
+      color: "bg-violet-500",
+      description: "10 shopping spots",
+      items: [
+        { id: "sh1", title: "Galeries Lafayette", description: "Iconic department store with stained-glass dome", image: "/paris-louvre-museum.jpg", duration: "2-3 hours", cost: 0, rating: 4.7, reviews: 14567, popular: true, tags: ["luxury", "iconic"], officialSite: "galerieslafayette.com" },
+        { id: "sh2", title: "Le Bon Marche", description: "Paris's oldest department store", image: "/paris-louvre-museum.jpg", duration: "2 hours", cost: 0, rating: 4.6, reviews: 6789, tags: ["luxury", "food-hall"], officialSite: "lebonmarche.com" },
+        { id: "sh3", title: "Marche aux Puces de Saint-Ouen", description: "World's largest antique flea market", image: "/paris-montmartre-streets.jpg", duration: "3-4 hours", cost: 0, rating: 4.5, reviews: 8934, popular: true, tags: ["vintage", "antiques"] },
+        { id: "sh4", title: "Rue Cler Market Street", description: "Charming open-air food market", image: "/paris-cafe-terrace.jpg", duration: "1.5 hours", cost: 0, rating: 4.8, reviews: 4321, tags: ["food", "local"] },
+        { id: "sh5", title: "Merci Concept Store", description: "Trendy lifestyle boutique in Le Marais", image: "/paris-montmartre-streets.jpg", duration: "1 hour", cost: 0, rating: 4.6, reviews: 3456, tags: ["fashion", "design"] },
+        { id: "sh6", title: "Shakespeare & Company", description: "Legendary English-language bookshop", image: "/paris-louvre-museum.jpg", duration: "45 min", cost: 0, rating: 4.9, reviews: 12345, popular: true, tags: ["books", "iconic"], officialSite: "shakespeareandcompany.com" },
+        { id: "sh7", title: "Marche d'Aligre", description: "Authentic Parisian outdoor market", image: "/paris-cafe-terrace.jpg", duration: "1.5 hours", cost: 0, rating: 4.7, reviews: 2345, tags: ["food", "local"] },
+        { id: "sh8", title: "Le BHV Marais", description: "Home goods and fashion near Hotel de Ville", image: "/paris-louvre-museum.jpg", duration: "2 hours", cost: 0, rating: 4.4, reviews: 3456, tags: ["department-store", "home"] },
+      ]
+    },
+
+    nightlife: {
+      title: "Nightlife & Bars",
+      icon: "Wine",
+      color: "bg-fuchsia-500",
+      description: "9 nightlife spots",
+      items: [
+        { id: "n1", title: "Le Caveau de la Huchette", description: "Jazz and swing dancing in a 16th-century cellar", image: "/paris-montmartre-streets.jpg", duration: "3-4 hours", cost: 15, rating: 4.8, reviews: 5678, popular: true, tags: ["jazz", "dancing"], officialSite: "caveaudelahuchette.fr" },
+        { id: "n2", title: "Harry's New York Bar", description: "Birthplace of the Bloody Mary since 1911", image: "/paris-cafe-terrace.jpg", duration: "2 hours", cost: 18, rating: 4.6, reviews: 4321, tags: ["cocktails", "historic"], officialSite: "harrysbar.fr" },
+        { id: "n3", title: "Le Baron Rouge", description: "Legendary wine bar near Marche d'Aligre", image: "/paris-cafe-terrace.jpg", duration: "1.5 hours", cost: 8, rating: 4.7, reviews: 3456, tags: ["wine", "local"] },
+        { id: "n4", title: "Concrete", description: "Floating techno club on the Seine", image: "/paris-seine-river.jpg", duration: "5-6 hours", cost: 20, rating: 4.5, reviews: 2345, tags: ["techno", "club"] },
+        { id: "n5", title: "Little Red Door", description: "Award-winning speakeasy cocktail bar", image: "/paris-montmartre-streets.jpg", duration: "2 hours", cost: 16, rating: 4.8, reviews: 1876, tags: ["cocktails", "speakeasy"] },
+        { id: "n6", title: "Rosa Bonheur sur Seine", description: "Trendy floating bar with river views", image: "/paris-seine-river.jpg", duration: "3 hours", cost: 12, rating: 4.6, reviews: 3456, tags: ["bar", "views"] },
+        { id: "n7", title: "La Bellevilloise", description: "Cultural venue with rooftop bar", image: "/paris-montmartre-streets.jpg", duration: "3 hours", cost: 10, rating: 4.5, reviews: 2345, tags: ["bar", "live-music"] },
+        { id: "n8", title: "Experimental Cocktail Club", description: "Speakeasy-style craft cocktails", image: "/paris-cafe-terrace.jpg", duration: "2 hours", cost: 18, rating: 4.7, reviews: 1654, tags: ["cocktails", "speakeasy"] },
+      ]
+    },
+
+    wellness: {
+      title: "Wellness & Relaxation",
+      icon: "Dumbbell",
+      color: "bg-cyan-500",
+      description: "7 wellness experiences",
+      items: [
+        { id: "w1", title: "Hammam de la Mosquee", description: "Traditional hammam in the Grand Mosque", image: "/paris-versailles-palace.jpg", duration: "2-3 hours", cost: 45, rating: 4.8, reviews: 4567, popular: true, tags: ["spa", "traditional"], officialSite: "mosqueedeparis.net" },
+        { id: "w2", title: "Spa at Le Bristol", description: "Luxury hotel spa with pool", image: "/paris-versailles-palace.jpg", duration: "3 hours", cost: 180, rating: 4.9, reviews: 1234, tags: ["luxury", "spa"] },
+        { id: "w3", title: "Yoga at Jardin du Luxembourg", description: "Outdoor yoga in beautiful gardens", image: "/paris-versailles-palace.jpg", duration: "1.5 hours", cost: 15, rating: 4.7, reviews: 876, tags: ["yoga", "outdoor"] },
+        { id: "w4", title: "Les Bains du Marais", description: "Relaxing hammam and spa in Le Marais", image: "/paris-montmartre-streets.jpg", duration: "2 hours", cost: 55, rating: 4.6, reviews: 2345, tags: ["spa", "hammam"] },
+        { id: "w5", title: "Seine-side Morning Run", description: "Guided jogging tour along the river", image: "/paris-seine-river.jpg", duration: "1 hour", cost: 20, rating: 4.5, reviews: 654, tags: ["fitness", "outdoor"] },
+        { id: "w6", title: "Nuxe Spa", description: "Natural French skincare treatments", image: "/paris-cafe-terrace.jpg", duration: "2 hours", cost: 95, rating: 4.7, reviews: 1543, tags: ["spa", "beauty"], officialSite: "nuxe.com" },
+        { id: "w7", title: "Aqua Studio Float Spa", description: "Sensory deprivation float experience", image: "/paris-louvre-museum.jpg", duration: "1.5 hours", cost: 65, rating: 4.6, reviews: 432, tags: ["unique", "relax"] },
+      ]
+    },
+
+    tours: {
+      title: "Guided Tours",
+      icon: "Compass",
+      color: "bg-indigo-500",
+      description: "9 guided tours",
+      items: [
+        { id: "to1", title: "Skip-the-Line Louvre Tour", description: "Expert guide through masterpieces", image: "/paris-louvre-museum.jpg", duration: "3 hours", cost: 65, rating: 4.9, reviews: 8765, popular: true, tags: ["museum", "guided"] },
+        { id: "to2", title: "Versailles Full-Day Tour", description: "Transport + guide + priority access", image: "/paris-versailles-palace.jpg", duration: "8 hours", cost: 89, rating: 4.8, reviews: 6543, popular: true, tags: ["day-trip", "guided"] },
+        { id: "to3", title: "Montmartre Art Walk", description: "Follow in the footsteps of Picasso and Renoir", image: "/paris-montmartre-streets.jpg", duration: "2.5 hours", cost: 30, rating: 4.7, reviews: 3456, tags: ["walking", "art"] },
+        { id: "to4", title: "Paris by Night Bike Tour", description: "See illuminated landmarks by bicycle", image: "/paris-eiffel-tower-sunset.jpg", duration: "3 hours", cost: 40, rating: 4.8, reviews: 2345, tags: ["bike", "night"] },
+        { id: "to5", title: "Food & Wine Tour Le Marais", description: "6 tastings with a local foodie guide", image: "/paris-cafe-terrace.jpg", duration: "3.5 hours", cost: 95, rating: 4.9, reviews: 1876, tags: ["food", "walking"] },
+        { id: "to6", title: "Catacombs VIP Tour", description: "Small group with restricted areas access", image: "/paris-montmartre-streets.jpg", duration: "2 hours", cost: 75, rating: 4.8, reviews: 1234, tags: ["history", "unique"] },
+        { id: "to7", title: "Seine River Dinner Cruise", description: "3-course dinner on the water", image: "/paris-seine-river.jpg", duration: "2.5 hours", cost: 110, rating: 4.7, reviews: 4567, tags: ["cruise", "dining"] },
+        { id: "to8", title: "D-Day Beaches Day Trip", description: "Full-day excursion to Normandy", image: "/paris-versailles-palace.jpg", duration: "14 hours", cost: 165, rating: 4.9, reviews: 2345, tags: ["day-trip", "history"] },
+      ]
+    },
   }
 }

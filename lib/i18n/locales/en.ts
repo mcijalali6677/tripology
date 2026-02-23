@@ -422,6 +422,10 @@ const en = {
       cafes: "Cafes",
       transport: "Getting Around",
       experiences: "Experiences",
+      shopping: "Shopping",
+      nightlife: "Nightlife",
+      wellness: "Wellness",
+      tours: "Tours",
     },
     categoryDescriptions: {
       activities: "Activities & Sightseeing",
@@ -430,6 +434,10 @@ const en = {
       cafes: "Cafes & Coffee",
       transport: "Getting Around",
       experiences: "Local Experiences",
+      shopping: "Shopping & Markets",
+      nightlife: "Nightlife & Bars",
+      wellness: "Wellness & Relaxation",
+      tours: "Guided Tours",
     },
     filters: {
       activityType: "Activity Type",

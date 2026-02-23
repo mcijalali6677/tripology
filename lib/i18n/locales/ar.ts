@@ -416,6 +416,10 @@ const ar = {
       cafes: "مقاهي",
       transport: "التنقل",
       experiences: "تجارب",
+      shopping: "تسوق",
+      nightlife: "حياة ليلية",
+      wellness: "صحة واسترخاء",
+      tours: "جولات",
     },
     categoryDescriptions: {
       activities: "أنشطة ومعالم سياحية",
@@ -424,6 +428,10 @@ const ar = {
       cafes: "مقاهي وقهوة",
       transport: "التنقل",
       experiences: "تجارب محلية",
+      shopping: "تسوق وأسواق",
+      nightlife: "حياة ليلية وبارات",
+      wellness: "صحة واسترخاء",
+      tours: "جولات مع مرشد",
     },
     filters: {
       activityType: "نوع النشاط",

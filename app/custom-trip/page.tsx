@@ -20,7 +20,8 @@ import {
   UserCircle, CalendarDays, Hotel, Home, Building2, HelpCircle,
   CheckCircle, CalendarCheck, Navigation2,
   Bot, Send, Loader2, Globe, Package, Share2, User,
-  Minus, DollarSign, BadgeCheck, BadgeAlert
+  Minus, DollarSign, BadgeCheck, BadgeAlert,
+  Compass, Dumbbell, PartyPopper, Gem
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { parisData } from "@/lib/paris-data"
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils"
 // Icon map
 const iconMap: Record<string, LucideIcon> = {
   Camera, Music, Utensils, Coffee, Train, Heart,
+  ShoppingBag, Wine, Dumbbell, Compass,
 }
 
 const parisDataWithIcons = {
@@ -162,6 +164,10 @@ export default function CustomTripPage() {
     cafes: t("customTrip.categories.cafes"),
     transport: t("customTrip.categories.transport"),
     experiences: t("customTrip.categories.experiences"),
+    shopping: t("customTrip.categories.shopping"),
+    nightlife: t("customTrip.categories.nightlife"),
+    wellness: t("customTrip.categories.wellness"),
+    tours: t("customTrip.categories.tours"),
   }
 
   // Trip Settings State
@@ -905,19 +911,23 @@ export default function CustomTripPage() {
             </div>
 
             {/* Category Icons — large colorful grid */}
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-2 scrollbar-hide px-1">
               {categories.map(([key, category]) => {
                 const Icon = category.icon
                 const basketCount = manualBasket.filter(item =>
                   category.items.some(catItem => catItem.id === item.id)
                 ).length
                 const colorMap: Record<CategoryKey, { bg: string; activeBg: string; icon: string; activeIcon: string }> = {
-                  activities:  { bg: "bg-blue-50",   activeBg: "bg-blue-600",   icon: "text-blue-600",    activeIcon: "text-white" },
-                  liveEvents:  { bg: "bg-rose-50",   activeBg: "bg-rose-500",   icon: "text-rose-500",    activeIcon: "text-white" },
-                  restaurants: { bg: "bg-emerald-50", activeBg: "bg-emerald-600", icon: "text-emerald-600", activeIcon: "text-white" },
-                  cafes:       { bg: "bg-orange-50",  activeBg: "bg-orange-500",  icon: "text-orange-500",  activeIcon: "text-white" },
-                  transport:   { bg: "bg-teal-50",    activeBg: "bg-teal-600",    icon: "text-teal-600",    activeIcon: "text-white" },
-                  experiences: { bg: "bg-pink-50",    activeBg: "bg-pink-500",    icon: "text-pink-500",    activeIcon: "text-white" },
+                  activities:  { bg: "bg-blue-50",    activeBg: "bg-blue-600",    icon: "text-blue-600",    activeIcon: "text-white" },
+                  liveEvents:  { bg: "bg-rose-50",    activeBg: "bg-rose-500",    icon: "text-rose-500",    activeIcon: "text-white" },
+                  restaurants: { bg: "bg-emerald-50",  activeBg: "bg-emerald-600",  icon: "text-emerald-600", activeIcon: "text-white" },
+                  cafes:       { bg: "bg-orange-50",   activeBg: "bg-orange-500",   icon: "text-orange-500",  activeIcon: "text-white" },
+                  transport:   { bg: "bg-teal-50",     activeBg: "bg-teal-600",     icon: "text-teal-600",    activeIcon: "text-white" },
+                  experiences: { bg: "bg-pink-50",     activeBg: "bg-pink-500",     icon: "text-pink-500",    activeIcon: "text-white" },
+                  shopping:    { bg: "bg-violet-50",   activeBg: "bg-violet-600",   icon: "text-violet-600",  activeIcon: "text-white" },
+                  nightlife:   { bg: "bg-fuchsia-50",  activeBg: "bg-fuchsia-600",  icon: "text-fuchsia-600", activeIcon: "text-white" },
+                  wellness:    { bg: "bg-cyan-50",     activeBg: "bg-cyan-600",     icon: "text-cyan-600",    activeIcon: "text-white" },
+                  tours:       { bg: "bg-indigo-50",   activeBg: "bg-indigo-600",   icon: "text-indigo-600",  activeIcon: "text-white" },
                 }
                 const colors = colorMap[key] || colorMap.activities
                 const isActive = selectedCategory === key
@@ -1011,6 +1021,8 @@ export default function CustomTripPage() {
                   activities: "bg-blue-600", liveEvents: "bg-rose-500",
                   restaurants: "bg-emerald-600", cafes: "bg-orange-500",
                   transport: "bg-teal-600", experiences: "bg-pink-500",
+                  shopping: "bg-violet-600", nightlife: "bg-fuchsia-600",
+                  wellness: "bg-cyan-600", tours: "bg-indigo-600",
                 }
                 return (
                   <div className={cn("size-9 rounded-xl flex items-center justify-center", colorMap[selectedCategory])}>
