@@ -1238,6 +1238,14 @@ const fa = {
     suggestMore: "بیشتر درباره این مکان بگو",
     suggestBestTime: "بهترین زمان سفر کیه؟",
     suggestDayPlan: "فعالیت‌های یک روز رو پیشنهاد بده",
+    // Basket
+    basketTitle: "سبد سفر شما",
+    basketEmpty: "سبد خالی است — پیشنهادات هوش مصنوعی رو اضافه کنید",
+    basketTotal: "مجموع آیتم‌ها",
+    basketItems: "مورد",
+    recommendedItems: "پیشنهادات سفر",
+    addToBasket: "افزودن",
+    added: "اضافه شد ✓",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Send, Bot, User, Sparkles, MapPin, Calendar, DollarSign,
   Plane, Hotel, Utensils, Camera, ChevronDown, X, Maximize2,
-  Minimize2, RotateCcw, Star, Clock, ArrowRight, Loader2, Globe
+  Minimize2, RotateCcw, Star, Clock, ArrowRight, Loader2, Globe,
+  ShoppingCart, Plus, Minus, Trash2, Package
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,7 +15,9 @@ import { useI18n } from "@/lib/i18n/context"
 /** Lightweight Markdown→HTML for AI responses */
 function formatMarkdown(text: string): string {
   if (!text) return ""
-  return text
+  // Strip basket item blocks before formatting
+  const cleaned = text.replace(/```basket[\s\S]*?```/g, "").replace(/\[BASKET_ITEM\][\s\S]*?\[\/BASKET_ITEM\]/g, "")
+  return cleaned
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
@@ -26,6 +29,74 @@ function formatMarkdown(text: string): string {
     .replace(/\n/g, "<br/>")
 }
 
+/** Parse [BASKET_ITEM]...[/BASKET_ITEM] blocks from AI response */
+interface BasketItem {
+  id: string
+  type: string
+  title: string
+  description: string
+  location: string
+  duration: string
+  cost: string
+  image_hint: string
+}
+
+function parseBasketItems(text: string): BasketItem[] {
+  const items: BasketItem[] = []
+  // Match both ```basket ... ``` and bare [BASKET_ITEM]...[/BASKET_ITEM]
+  const patterns = [
+    /\[BASKET_ITEM\]([\s\S]*?)\[\/BASKET_ITEM\]/g,
+  ]
+  for (const pattern of patterns) {
+    let match
+    while ((match = pattern.exec(text)) !== null) {
+      const block = match[1]
+      const item: Record<string, string> = {}
+      for (const line of block.split("\n")) {
+        const kv = line.match(/^\s*(\w[\w_]*):\s*(.+)$/)
+        if (kv) {
+          item[kv[1].trim()] = kv[2].trim()
+        }
+      }
+      if (item.title) {
+        items.push({
+          id: `basket-${Date.now()}-${items.length}`,
+          type: item.type || "activity",
+          title: item.title,
+          description: item.description || "",
+          location: item.location || "",
+          duration: item.duration || "",
+          cost: item.cost || "",
+          image_hint: item.image_hint || item.title,
+        })
+      }
+    }
+  }
+  return items
+}
+
+/** Get icon for basket item type */
+function getItemIcon(type: string) {
+  switch (type.toLowerCase()) {
+    case "hotel": return <Hotel className="size-4" />
+    case "restaurant": return <Utensils className="size-4" />
+    case "transport": return <Plane className="size-4" />
+    case "experience": return <Camera className="size-4" />
+    default: return <MapPin className="size-4" />
+  }
+}
+
+/** Get color for basket item type */
+function getItemColor(type: string) {
+  switch (type.toLowerCase()) {
+    case "hotel": return "border-purple-200 bg-purple-50"
+    case "restaurant": return "border-orange-200 bg-orange-50"
+    case "transport": return "border-blue-200 bg-blue-50"
+    case "experience": return "border-amber-200 bg-amber-50"
+    default: return "border-emerald-200 bg-emerald-50"
+  }
+}
+
 interface Message {
   id: string
   role: "user" | "assistant"
@@ -33,6 +104,7 @@ interface Message {
   timestamp: Date
   isStreaming?: boolean
   suggestions?: string[]
+  basketItems?: BasketItem[]
   cards?: TripCard[]
   mapPoints?: { lat: number; lng: number; label: string }[]
 }
@@ -71,6 +143,8 @@ export function AIChatPlanner({
   const [isLoading, setIsLoading] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [basket, setBasket] = useState<BasketItem[]>([])
+  const [showBasket, setShowBasket] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -82,6 +156,8 @@ export function AIChatPlanner({
     try {
       const saved = localStorage.getItem("tripology_planner_session")
       if (saved) setSessionId(saved)
+      const savedBasket = localStorage.getItem("tripology_basket")
+      if (savedBasket) setBasket(JSON.parse(savedBasket))
     } catch { /* SSR or storage unavailable */ }
   }, [])
 
@@ -90,6 +166,10 @@ export function AIChatPlanner({
       try { localStorage.setItem("tripology_planner_session", sessionId) } catch { /* ignore */ }
     }
   }, [sessionId])
+
+  useEffect(() => {
+    try { localStorage.setItem("tripology_basket", JSON.stringify(basket)) } catch { /* ignore */ }
+  }, [basket])
 
   // Build prompt keys based on local vs international toggle
   const promptPrefix = showInternational ? "intlPrompt" : "prompt"
@@ -105,6 +185,18 @@ export function AIChatPlanner({
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
+
+  const addToBasket = (item: BasketItem) => {
+    if (!basket.find(b => b.title === item.title)) {
+      setBasket(prev => [...prev, item])
+    }
+  }
+
+  const removeFromBasket = (itemId: string) => {
+    setBasket(prev => prev.filter(b => b.id !== itemId))
+  }
+
+  const isInBasket = (title: string) => basket.some(b => b.title === title)
 
   const sendMessage = async (content?: string) => {
     const messageContent = content || input.trim()
@@ -146,7 +238,6 @@ export function AIChatPlanner({
       })
 
       if (!response.ok) {
-        // Try to parse JSON error
         const errData = await response.json().catch(() => null)
         throw new Error(errData?.content || errData?.error || "Failed to send message")
       }
@@ -156,14 +247,17 @@ export function AIChatPlanner({
       // Handle JSON response (fallback mode)
       if (contentType.includes("application/json")) {
         const data = await response.json()
+        const content = data.content || t("chatPlanner.fallbackHelp")
+        const basketItems = parseBasketItems(content)
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessage.id
               ? {
                   ...msg,
-                  content: data.content || t("chatPlanner.fallbackHelp"),
+                  content,
                   isStreaming: false,
                   suggestions: generateSuggestions(messageContent),
+                  basketItems,
                 }
               : msg
           )
@@ -177,7 +271,6 @@ export function AIChatPlanner({
       let fullContent = ""
       let buffer = ""
 
-      // Capture sessionId from response header (primary) or from SSE event (fallback)
       const headerSessionId = response.headers.get("x-session-id")
       if (headerSessionId && !currentSessionId) {
         currentSessionId = headerSessionId
@@ -191,7 +284,7 @@ export function AIChatPlanner({
 
           buffer += decoder.decode(value, { stream: true })
           const lines = buffer.split("\n")
-          buffer = lines.pop() || "" // keep incomplete line in buffer
+          buffer = lines.pop() || ""
 
           for (const line of lines) {
             if (line.startsWith("data: ")) {
@@ -199,12 +292,10 @@ export function AIChatPlanner({
               if (!jsonStr) continue
               try {
                 const data = JSON.parse(jsonStr)
-                // Capture sessionId from first event
                 if (data.sessionId && !currentSessionId) {
                   currentSessionId = data.sessionId
                   setSessionId(data.sessionId)
                 }
-                // Accumulate tokens
                 if (data.token) {
                   fullContent += data.token
                   setMessages((prev) =>
@@ -215,8 +306,8 @@ export function AIChatPlanner({
                     )
                   )
                 }
-                // Stream complete
                 if (data.done) {
+                  const basketItems = parseBasketItems(fullContent)
                   setMessages((prev) =>
                     prev.map((msg) =>
                       msg.id === assistantMessage.id
@@ -225,17 +316,16 @@ export function AIChatPlanner({
                             content: fullContent || data.content || t("chatPlanner.fallbackHelp"),
                             isStreaming: false,
                             suggestions: generateSuggestions(messageContent),
+                            basketItems,
                           }
                         : msg
                     )
                   )
                 }
-                // Handle error from backend
                 if (data.error) {
                   throw new Error(data.error)
                 }
               } catch (e) {
-                // If JSON parse fails, treat as plain text token
                 if (jsonStr && !(e instanceof SyntaxError)) throw e
               }
             }
@@ -243,7 +333,8 @@ export function AIChatPlanner({
         }
       }
 
-      // Finalize: mark streaming done if not already
+      // Finalize
+      const basketItems = parseBasketItems(fullContent)
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessage.id && msg.isStreaming
@@ -252,6 +343,7 @@ export function AIChatPlanner({
                 content: fullContent || t("chatPlanner.fallbackEmpty"),
                 isStreaming: false,
                 suggestions: fullContent ? generateSuggestions(messageContent) : undefined,
+                basketItems: basketItems.length > 0 ? basketItems : undefined,
               }
             : msg
         )
@@ -331,6 +423,20 @@ export function AIChatPlanner({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Basket button */}
+            {basket.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-white/70 hover:text-white hover:bg-white/10 relative"
+                onClick={() => setShowBasket(!showBasket)}
+              >
+                <ShoppingCart className="size-3.5" />
+                <span className="absolute -top-0.5 -end-0.5 size-4 rounded-full bg-amber-400 text-[10px] font-bold text-amber-900 flex items-center justify-center">
+                  {basket.length}
+                </span>
+              </Button>
+            )}
             {messages.length > 0 && (
               <Button
                 variant="ghost"
@@ -364,6 +470,54 @@ export function AIChatPlanner({
           </div>
         </div>
 
+        {/* Basket Sidebar */}
+        <AnimatePresence>
+          {showBasket && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-b bg-amber-50/50 overflow-hidden"
+            >
+              <div className="p-3 max-h-[200px] overflow-y-auto">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-semibold flex items-center gap-1.5">
+                    <Package className="size-3.5" />
+                    {t("chatPlanner.basketTitle") || "سبد سفر شما"}
+                  </h4>
+                  <button onClick={() => setShowBasket(false)} className="text-muted-foreground hover:text-foreground">
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+                {basket.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground">{t("chatPlanner.basketEmpty") || "سبد خالی است"}</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {basket.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between rounded-lg border bg-white px-2.5 py-1.5 text-[11px]">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {getItemIcon(item.type)}
+                          <div className="min-w-0">
+                            <span className="font-medium truncate block">{item.title}</span>
+                            <span className="text-muted-foreground">{item.cost}</span>
+                          </div>
+                        </div>
+                        <button onClick={() => removeFromBasket(item.id)} className="text-red-400 hover:text-red-600 shrink-0 ms-2">
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-1.5 border-t text-xs font-semibold">
+                      <span>{t("chatPlanner.basketTotal") || "مجموع آیتم‌ها"}</span>
+                      <span>{basket.length} {t("chatPlanner.basketItems") || "مورد"}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
@@ -376,7 +530,6 @@ export function AIChatPlanner({
                 {t("chatPlanner.description")}
               </p>
 
-              {/* Local/International toggle — only for non-English locales */}
               {locale !== "en" && (
                 <button
                   onClick={() => setShowInternational(!showInternational)}
@@ -443,6 +596,73 @@ export function AIChatPlanner({
                     )}
                   </div>
                 </div>
+
+                {/* Basket Items from AI */}
+                {message.basketItems && message.basketItems.length > 0 && !message.isStreaming && (
+                  <div className="mt-3 ms-11 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-forest">
+                      <ShoppingCart className="size-3.5" />
+                      <span>{t("chatPlanner.recommendedItems") || "پیشنهادات سفر"}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {message.basketItems.map((item) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={cn(
+                            "rounded-xl border p-3 transition-all hover:shadow-md",
+                            getItemColor(item.type)
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2 min-w-0 flex-1">
+                              <div className="mt-0.5">{getItemIcon(item.type)}</div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-xs">{item.title}</div>
+                                <div className="text-[11px] text-muted-foreground mt-0.5">{item.description}</div>
+                                <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                                  {item.location && (
+                                    <span className="flex items-center gap-0.5">
+                                      <MapPin className="size-2.5" /> {item.location}
+                                    </span>
+                                  )}
+                                  {item.duration && (
+                                    <span className="flex items-center gap-0.5">
+                                      <Clock className="size-2.5" /> {item.duration}
+                                    </span>
+                                  )}
+                                  {item.cost && (
+                                    <span className="flex items-center gap-0.5 font-semibold text-forest">
+                                      <DollarSign className="size-2.5" /> {item.cost}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={isInBasket(item.title) ? "outline" : "default"}
+                              className={cn(
+                                "h-7 text-[10px] shrink-0",
+                                isInBasket(item.title)
+                                  ? "border-green-300 bg-green-50 text-green-700"
+                                  : "bg-forest hover:bg-forest/90"
+                              )}
+                              onClick={() => isInBasket(item.title) ? removeFromBasket(item.id) : addToBasket(item)}
+                            >
+                              {isInBasket(item.title) ? (
+                                <><Minus className="size-3 me-1" /> {t("chatPlanner.added") || "اضافه شد"}</>
+                              ) : (
+                                <><Plus className="size-3 me-1" /> {t("chatPlanner.addToBasket") || "افزودن"}</>
+                              )}
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Suggestion Chips */}
                 {message.suggestions && message.suggestions.length > 0 && (

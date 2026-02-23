@@ -1172,6 +1172,13 @@ const fr = {
     suggestMore: "Dis-moi en plus sur cet endroit",
     suggestBestTime: "Quelle est la meilleure période pour visiter ?",
     suggestDayPlan: "Propose des activités pour une journée",
+    basketTitle: "Votre panier voyage",
+    basketEmpty: "Le panier est vide — ajoutez des suggestions IA",
+    basketTotal: "Total des articles",
+    basketItems: "articles",
+    recommendedItems: "Suggestions de voyage",
+    addToBasket: "Ajouter",
+    added: "Ajouté ✓",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

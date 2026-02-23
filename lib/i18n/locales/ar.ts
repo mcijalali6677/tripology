@@ -1172,6 +1172,13 @@ const ar = {
     suggestMore: "أخبرني المزيد عن هذا المكان",
     suggestBestTime: "ما أفضل وقت للزيارة؟",
     suggestDayPlan: "اقترح أنشطة ليوم واحد",
+    basketTitle: "سلة رحلتك",
+    basketEmpty: "السلة فارغة — أضف اقتراحات الذكاء الاصطناعي",
+    basketTotal: "إجمالي العناصر",
+    basketItems: "عناصر",
+    recommendedItems: "اقتراحات الرحلة",
+    addToBasket: "إضافة",
+    added: "تمت الإضافة ✓",
   },
 
   // ===== ITINERARY DETAIL PAGE =====

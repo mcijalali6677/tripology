@@ -18,6 +18,7 @@ bcrypt==4.2.1
 
 # ===== AI / ML =====
 ollama==0.4.7
+openai>=1.40.0
 numpy==2.2.1
 
 # ===== Utilities =====

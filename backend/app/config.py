@@ -25,7 +25,19 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # Ollama
+    # LLM Provider: "groq", "openai", or "ollama"
+    LLM_PROVIDER: str = "groq"
+    
+    # External API (Groq / OpenAI-compatible)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+    
+    # OpenAI (if using OpenAI directly)
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    
+    # Ollama (local fallback)
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "mistral:7b-instruct-v0.3-q4_K_M"
     OLLAMA_EMBED_MODEL: str = "nomic-embed-text"

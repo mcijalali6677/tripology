@@ -1248,6 +1248,14 @@ const en = {
     suggestMore: "Tell me more about this place",
     suggestBestTime: "What's the best time to visit?",
     suggestDayPlan: "Suggest activities for a day",
+    // Basket
+    basketTitle: "Your Trip Basket",
+    basketEmpty: "Basket is empty — add AI suggestions",
+    basketTotal: "Total items",
+    basketItems: "items",
+    recommendedItems: "Trip Suggestions",
+    addToBasket: "Add",
+    added: "Added ✓",
   },
 
   // ===== ITINERARY DETAIL PAGE =====
