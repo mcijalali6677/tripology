@@ -56,10 +56,10 @@ export function AIChatPlanner({
   const [isLoading, setIsLoading] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [showInternational, setShowInternational] = useState(locale === "en")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { t, locale } = useI18n()
+  const [showInternational, setShowInternational] = useState(locale === "en")
 
   // Build prompt keys based on local vs international toggle
   const promptPrefix = showInternational ? "intlPrompt" : "prompt"
