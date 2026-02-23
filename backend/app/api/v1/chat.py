@@ -115,6 +115,10 @@ async def send_message_stream(
     
     async def event_stream():
         try:
+            # Yield an immediate event to flush HTTP response headers to the client.
+            # Without this, Node.js fetch() blocks until the first real token arrives.
+            yield f"data: {json.dumps({'status': 'thinking'})}\n\n"
+
             full_response = ""
             async for token in chat_agent.chat_stream(
                 message=data.message,
