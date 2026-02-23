@@ -12,8 +12,8 @@ from app.core.security import hash_password
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-ADMIN_USERNAME = "admin"
-ADMIN_EMAIL = "admin@tripology.com"
+ADMIN_USERNAME = "hamedjalali66"
+ADMIN_EMAIL = "hamedjalali66@yahoo.com"
 ADMIN_PASSWORD = "463310817hH*h"
 
 
