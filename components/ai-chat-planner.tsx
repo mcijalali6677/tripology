@@ -1,0 +1,453 @@
+"use client"
+
+import { useState, useRef, useEffect, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+  Send, Bot, User, Sparkles, MapPin, Calendar, DollarSign,
+  Plane, Hotel, Utensils, Camera, ChevronDown, X, Maximize2,
+  Minimize2, RotateCcw, Star, Clock, ArrowRight, Loader2, Globe
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+interface Message {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  timestamp: Date
+  isStreaming?: boolean
+  suggestions?: string[]
+  cards?: TripCard[]
+  mapPoints?: { lat: number; lng: number; label: string }[]
+}
+
+interface TripCard {
+  type: "destination" | "activity" | "hotel" | "restaurant" | "flight"
+  title: string
+  subtitle: string
+  image?: string
+  rating?: number
+  price?: string
+  duration?: string
+  tags?: string[]
+}
+
+const STARTER_PROMPTS = [
+  { icon: <Plane className="size-4" />, text: "Plan a 5-day trip to Paris", color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { icon: <MapPin className="size-4" />, text: "Hidden gems in Tokyo", color: "bg-rose-50 text-rose-700 border-rose-200" },
+  { icon: <DollarSign className="size-4" />, text: "Budget travel in Southeast Asia", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { icon: <Camera className="size-4" />, text: "Best photo spots in Iceland", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  { icon: <Utensils className="size-4" />, text: "Food tour itinerary for Istanbul", color: "bg-orange-50 text-orange-700 border-orange-200" },
+  { icon: <Hotel className="size-4" />, text: "Luxury resort in Maldives", color: "bg-purple-50 text-purple-700 border-purple-200" },
+]
+
+export function AIChatPlanner({
+  isOpen,
+  onClose,
+  isFullPage = false
+}: {
+  isOpen?: boolean
+  onClose?: () => void
+  isFullPage?: boolean
+}) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  const createSession = async () => {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create-session" })
+      })
+      const data = await res.json()
+      return data.sessionId || `local-${Date.now()}`
+    } catch {
+      return `local-${Date.now()}`
+    }
+  }
+
+  const sendMessage = async (content?: string) => {
+    const messageContent = content || input.trim()
+    if (!messageContent || isLoading) return
+
+    setInput("")
+    setIsLoading(true)
+
+    let currentSessionId = sessionId
+    if (!currentSessionId) {
+      currentSessionId = await createSession()
+      setSessionId(currentSessionId)
+    }
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: messageContent,
+      timestamp: new Date(),
+    }
+
+    const assistantMessage: Message = {
+      id: `assistant-${Date.now()}`,
+      role: "assistant",
+      content: "",
+      timestamp: new Date(),
+      isStreaming: true,
+    }
+
+    setMessages((prev) => [...prev, userMessage, assistantMessage])
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: messageContent,
+          sessionId: currentSessionId,
+        }),
+      })
+
+      if (!response.ok) throw new Error("Failed to send message")
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let fullContent = ""
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split("\n")
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6))
+                if (data.token) {
+                  fullContent += data.token
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessage.id
+                        ? { ...msg, content: fullContent }
+                        : msg
+                    )
+                  )
+                }
+                if (data.done) {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessage.id
+                        ? {
+                            ...msg,
+                            content: fullContent || data.content || "I'm here to help you plan your perfect trip! What destination are you thinking about?",
+                            isStreaming: false,
+                            suggestions: generateSuggestions(messageContent),
+                          }
+                        : msg
+                    )
+                  )
+                }
+              } catch {
+                if (line.slice(6).trim()) {
+                  fullContent += line.slice(6)
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessage.id
+                        ? { ...msg, content: fullContent }
+                        : msg
+                    )
+                  )
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (!fullContent) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessage.id
+              ? {
+                  ...msg,
+                  content: "I'd love to help you plan an amazing trip! Tell me about your dream destination, travel dates, and budget, and I'll create a personalized itinerary for you.",
+                  isStreaming: false,
+                  suggestions: generateSuggestions(messageContent),
+                }
+              : msg
+          )
+        )
+      }
+    } catch {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessage.id
+            ? {
+                ...msg,
+                content: "I'm having trouble connecting right now, but I'm still here to help! Try asking me about destinations, activities, or budgets for your next trip.",
+                isStreaming: false,
+              }
+            : msg
+        )
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const generateSuggestions = (userMessage: string): string[] => {
+    const lower = userMessage.toLowerCase()
+    if (lower.includes("paris") || lower.includes("france")) {
+      return ["Show me the best restaurants", "What about day trips from Paris?", "Budget breakdown for Paris"]
+    }
+    if (lower.includes("budget") || lower.includes("cheap")) {
+      return ["Best hostels nearby?", "Free activities to do", "Street food recommendations"]
+    }
+    if (lower.includes("luxury") || lower.includes("resort")) {
+      return ["Spa recommendations", "Fine dining options", "Private tour guides"]
+    }
+    return ["Tell me more about this place", "What's the best time to visit?", "Suggest activities for a day"]
+  }
+
+  const resetChat = () => {
+    setMessages([])
+    setSessionId(null)
+    setInput("")
+  }
+
+  const containerClass = isFullPage
+    ? "h-[calc(100vh-4rem)] flex flex-col"
+    : cn(
+        "fixed z-50 flex flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl transition-all duration-300",
+        isExpanded
+          ? "bottom-4 end-4 start-4 top-4 sm:start-auto sm:w-[600px]"
+          : "bottom-20 end-4 w-[380px] sm:w-[420px] h-[600px]"
+      )
+
+  if (!isFullPage && !isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={!isFullPage ? { opacity: 0, y: 20, scale: 0.95 } : undefined}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        className={containerClass}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b bg-gradient-to-r from-forest to-forest/90 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center size-9 rounded-xl bg-white/20 backdrop-blur-sm">
+              <Sparkles className="size-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white text-sm">Tripology AI</h3>
+              <div className="flex items-center gap-1.5">
+                <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] text-white/70">
+                  {isLoading ? "Thinking..." : "Ready to plan your trip"}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-white/70 hover:text-white hover:bg-white/10"
+                onClick={resetChat}
+              >
+                <RotateCcw className="size-3.5" />
+              </Button>
+            )}
+            {!isFullPage && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={onClose}
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-4">
+              <div className="size-16 rounded-2xl bg-gradient-to-br from-forest/10 to-emerald-100 flex items-center justify-center mb-4">
+                <Globe className="size-8 text-forest" />
+              </div>
+              <h4 className="font-serif text-lg font-semibold mb-2">Your AI Travel Companion</h4>
+              <p className="text-sm text-muted-foreground mb-6 max-w-xs">
+                Tell me where you want to go and I'll create a personalized itinerary with real recommendations.
+              </p>
+              <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                {STARTER_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt.text}
+                    onClick={() => sendMessage(prompt.text)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs text-start transition-all hover:shadow-md",
+                      prompt.color
+                    )}
+                  >
+                    {prompt.icon}
+                    <span className="line-clamp-2">{prompt.text}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            messages.map((message) => (
+              <div key={message.id}>
+                <div
+                  className={cn(
+                    "flex gap-3",
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "size-8 rounded-xl flex items-center justify-center shrink-0",
+                      message.role === "user"
+                        ? "bg-forest text-white"
+                        : "bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700"
+                    )}
+                  >
+                    {message.role === "user" ? (
+                      <User className="size-4" />
+                    ) : (
+                      <Bot className="size-4" />
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed",
+                      message.role === "user"
+                        ? "bg-forest text-white rounded-tr-sm"
+                        : "bg-secondary/50 text-foreground rounded-tl-sm"
+                    )}
+                  >
+                    {message.content}
+                    {message.isStreaming && (
+                      <span className="inline-block w-1.5 h-4 bg-forest/50 animate-pulse ms-0.5 rounded-sm" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Suggestion Chips */}
+                {message.suggestions && message.suggestions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 ms-11">
+                    {message.suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => sendMessage(suggestion)}
+                        className="rounded-full border border-forest/20 bg-forest/5 px-3 py-1 text-xs text-forest hover:bg-forest/10 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Trip Cards */}
+                {message.cards && message.cards.length > 0 && (
+                  <div className="flex gap-2 mt-2 ms-11 overflow-x-auto pb-1">
+                    {message.cards.map((card, i) => (
+                      <div
+                        key={i}
+                        className="min-w-[200px] rounded-xl border bg-card p-3 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <MapPin className="size-3.5 text-forest" />
+                          <span className="text-xs font-medium">{card.title}</span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">{card.subtitle}</p>
+                        {card.rating && (
+                          <div className="flex items-center gap-1 mt-1.5">
+                            <Star className="size-3 text-amber-500 fill-amber-500" />
+                            <span className="text-[11px] font-medium">{card.rating}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="border-t bg-card p-3">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  e.target.style.height = "auto"
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    sendMessage()
+                  }
+                }}
+                placeholder="Ask me anything about travel..."
+                className="w-full resize-none rounded-xl border bg-secondary/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 min-h-[44px] max-h-[120px]"
+                rows={1}
+              />
+            </div>
+            <Button
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || isLoading}
+              className="rounded-xl bg-forest hover:bg-forest/90 size-11 shrink-0"
+            >
+              {isLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Send className="size-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 mt-1.5 text-center">
+            Tripology AI can make mistakes. Verify important travel details.
+          </p>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}

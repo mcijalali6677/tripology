@@ -1,0 +1,87 @@
+services:
+  # ===== PostgreSQL + pgvector =====
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: tripology-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tripology_db
+      POSTGRES_USER: tripology
+      POSTGRES_PASSWORD: tripology_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tripology -d tripology_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== Redis =====
+  redis:
+    image: redis:7-alpine
+    container_name: tripology-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  # ===== Ollama (Self-hosted AI) =====
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tripology-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # For CPU-only deployment:
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    # If you have NVIDIA GPU, uncomment:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # ===== Backend API =====
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tripology-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://tripology:tripology_pass@db:5432/tripology_db
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=mistral:7b-instruct-v0.3-q4_K_M
+      - OLLAMA_EMBED_MODEL=nomic-embed-text
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production-at-least-32-chars}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-jwt-secret-at-least-32-chars}
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
+      - DEBUG=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      ollama:
+        condition: service_started
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  redisdata:
+  ollama_models:
+  uploads:
